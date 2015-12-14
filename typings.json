@@ -1,0 +1,26 @@
+{
+  "ambientDependencies": {
+    "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
+    "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
+    "glob": "github:DefinitelyTyped/DefinitelyTyped/glob/glob.d.ts#a14d724826174d1669d4df04c80f4838b7e71fdf",
+    "knex": "github:DefinitelyTyped/DefinitelyTyped/knex/knex.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
+    "kue": "github:DefinitelyTyped/DefinitelyTyped/kue/kue.d.ts#4340cbf5c38ccd2d6a751e1c17dff70d8e403406",
+    "mime": "github:DefinitelyTyped/DefinitelyTyped/mime/mime.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
+    "minimatch": "github:DefinitelyTyped/DefinitelyTyped/minimatch/minimatch.d.ts#a14d724826174d1669d4df04c80f4838b7e71fdf",
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#8cf8164641be73e8f1e652c2a5b967c7210b6729",
+    "redis": "github:DefinitelyTyped/DefinitelyTyped/redis/redis.d.ts#4340cbf5c38ccd2d6a751e1c17dff70d8e403406",
+    "semver": "github:DefinitelyTyped/DefinitelyTyped/semver/semver.d.ts#0008781fb2a165a68d10b7f579330dcb4f6a1cb6",
+    "serve-static": "github:DefinitelyTyped/DefinitelyTyped/serve-static/serve-static.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6"
+  },
+  "devDependencies": {
+    "blue-tape": "github:typings/typed-blue-tape#a4e41a85d6f760e7c60088127968eae7d3a556fa"
+  },
+  "dependencies": {
+    "basic-auth-connect": "file:custom_typings/basic-auth-connect.d.ts",
+    "batch": "file:custom_typings/batch.d.ts",
+    "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
+    "native-or-bluebird": "github:typings/typed-native-or-bluebird#2f6bf64abda66d137016576086e9e1c0dac45469",
+    "promise-finally": "npm:promise-finally",
+    "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663"
+  }
+}

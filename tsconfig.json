@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "outDir": "dist/",
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "newLine": "LF"
+  },
+  "files": [
+    "src/api/index.ts",
+    "src/worker/index.ts",
+    "typings/main.d.ts",
+    "src/migrations/1449961455525-init.ts"
+  ]
+}
