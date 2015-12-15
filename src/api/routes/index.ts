@@ -1,11 +1,11 @@
 import express = require('express')
 
 import search from './search'
-import typings from './typings'
+import versions from './versions'
 
 const router = express.Router()
 
 router.use('/search', search)
-router.use('/typings', typings)
+router.use('/versions', versions)
 
 export default router

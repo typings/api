@@ -18,22 +18,15 @@ Search all known TypeScript definitions.
 * **offset** The offset to search from
 * **limit** The maximum number of items to return (max: `50`)
 
-### /typings/:source/:name
+### /versions/:source/:name/:version?
 
 Print the details in the registry.
 
 #### URI Parameters
 
 * **source** The source to use (from `/search`)
-* **name** The name of the project
-
-### /typings/:source/:name/:version
-
-Find a specific version of a project.
-
-* **source** The source to use (as above)
-* **name** The name of the project (as above)
-* **version** A semantic version range to search for
+* **name** The name of the project (from `/search`)
+* **version** A semantic version query (default: `*`)
 
 ## Development
 
