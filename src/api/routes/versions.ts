@@ -39,14 +39,14 @@ function getVersions (source: string, name: string, version?: string) {
       return results
         .sort((a: any, b: any) => {
           if (a.version === '*') {
-            return 1
-          }
-
-          if (b.version === '*') {
             return -1
           }
 
-          return semver.compare(a.version, b.version)
+          if (b.version === '*') {
+            return 1
+          }
+
+          return semver.rcompare(a.version, b.version)
         })
         .filter((x: any) => x.version === '*' || semver.satisfies(x.version, version))
     })
