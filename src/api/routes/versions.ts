@@ -24,18 +24,14 @@ export default router
 /**
  * Find matching project versions.
  */
-function getVersions (source: string, name: string, version?: string) {
+function getVersions (source: string, name: string, version: string = '*') {
   return db('versions')
     .select(['versions.version', 'versions.description', 'versions.compiler', 'versions.location'])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .andWhere('entries.source', '=', source)
     .then(results => {
-      if (version == null) {
-        return results
-      }
-
-      // Sort results by semver.
+      // Sort results by semver descending.
       return results
         .sort((a: any, b: any) => {
           if (a.version === '*') {
