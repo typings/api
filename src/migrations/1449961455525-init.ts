@@ -1,4 +1,4 @@
-import unthenify from '../support/utils/unthenify'
+import unthenify = require('unthenify')
 import db from '../support/knex'
 
 export const up = unthenify(function () {

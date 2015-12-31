@@ -21,6 +21,7 @@
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
     "native-or-bluebird": "github:typings/typed-native-or-bluebird#2f6bf64abda66d137016576086e9e1c0dac45469",
     "promise-finally": "npm:promise-finally",
-    "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663"
+    "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663",
+    "unthenify": "npm:unthenify"
   }
 }

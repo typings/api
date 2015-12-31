@@ -2,11 +2,11 @@ import kue = require('kue')
 import { join, basename } from 'path'
 import fs = require('fs')
 import thenify = require('thenify')
-import * as PATHS from '../../support/constants/paths'
-import unthenify from '../../support/utils/unthenify'
+import unthenify = require('unthenify')
 import glob = require('glob')
 import Batch = require('batch')
 import Promise = require('native-or-bluebird')
+import * as PATHS from '../../support/constants/paths'
 
 import { cloneOrUpdate, latestCommit } from '../utils/git'
 import { insertOrUpdate } from '../utils/db'

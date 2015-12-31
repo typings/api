@@ -14,7 +14,7 @@
     "build-watch": "tsc --watch",
     "test-spec": "ts-node node_modules/blue-tape/bin/blue-tape.js \"src/**/*.spec.ts\" | tap-spec",
     "test-cov": "ts-node node_modules/istanbul/lib/cli.js cover -e .ts --print none -x \"*.d.ts\" -x \"*.spec.ts\" blue-tape -- \"src/**/*.spec.ts\" | tap-spec",
-    "test": "npm run lint && echo \"TODO: Write unit tests\"",
+    "test": "npm run lint && npm run build && echo \"TODO: Write unit tests\"",
     "prepublish": "typings install && npm run build",
     "start": "nf start --wrap",
     "start-watch": "nodemon --exec \"npm run start\" --watch dist",
@@ -71,6 +71,7 @@
     "pg": "^4.4.3",
     "promise-finally": "^2.0.1",
     "semver": "^5.1.0",
-    "thenify": "^3.1.1"
+    "thenify": "^3.1.1",
+    "unthenify": "^1.0.0"
   }
 }

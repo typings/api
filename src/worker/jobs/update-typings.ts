@@ -4,7 +4,7 @@ import thenify = require('thenify')
 import glob = require('glob')
 import fs = require('fs')
 import Batch = require('batch')
-import unthenify from '../../support/utils/unthenify'
+import unthenify = require('unthenify')
 import { cloneOrUpdate } from '../utils/git'
 import { insertOrUpdate } from '../utils/db'
 

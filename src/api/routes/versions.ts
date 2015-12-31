@@ -37,6 +37,13 @@ function getVersions (source: string, name: string, version: string = '*') {
     return Promise.reject(new TypeError(`Invalid Range: ${version}`))
   }
 
+  interface Result {
+    version: string
+    description: string
+    compiler: string
+    location: string
+  }
+
   return db('versions')
     .select(['versions.version', 'versions.description', 'versions.compiler', 'versions.location'])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
@@ -45,14 +52,14 @@ function getVersions (source: string, name: string, version: string = '*') {
     .then(results => {
       // Sort results by semver descending.
       return results
-        .filter(x => {
+        .filter((x: Result) => {
           if (x.version === '*' || range === '*') {
             return true
           }
 
           return semver.valid(x.version) && semver.satisfies(x.version, range)
         })
-        .sort((a: any, b: any) => {
+        .sort((a: Result, b: Result) => {
           if (a.version === '*' || !semver.valid(b.version)) {
             return -1
           }
