@@ -12,9 +12,7 @@ router.get('/', function (req, res, next) {
   const dbQuery = db('entries')
 
   if (typeof query.query === 'string') {
-    dbQuery.orWhere('name', 'LIKE', `%${query.query}%`)
-    dbQuery.orWhere('homepage', 'LIKE', `%${query.query}%`)
-    dbQuery.orWhere('description', 'LIKE', `%${query.query}%`)
+    dbQuery.whereRaw('tsv @@ plainto_tsquery(?)', [query.query])
   }
 
   if (typeof query.name === 'string') {
@@ -31,11 +29,29 @@ router.get('/', function (req, res, next) {
     .select(['name', 'source', 'homepage', 'description'])
     .offset(offset)
     .limit(limit)
-    .orderBy('name', 'asc')
 
-  return Promise.all<any[], [{ count: string }]>([searchQuery, totalQuery])
+  if (typeof query.query === 'string') {
+    searchQuery.orderByRaw('ts_rank(tsv, plainto_tsquery(?)) DESC', [query.query])
+  }
+
+  searchQuery.orderBy('name', 'asc')
+
+  interface Result {
+    name: string
+    source: string
+    homepage: string
+    description: string
+    rank: number
+  }
+
+  return Promise.all<Result[], [{ count: string }]>([searchQuery, totalQuery])
     .then(([results, totals]) => {
-      return res.json({ results, total: totals[0].count })
+      return res.json({
+        results: results.map(({ name, source, homepage, description }) => {
+          return { name, source, homepage, description }
+        }),
+        total: totals[0].count
+      })
     })
     .catch(next as any)
 })
