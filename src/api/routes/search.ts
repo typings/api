@@ -6,6 +6,8 @@ const router = express.Router()
 
 router.get('/', function (req, res, next) {
   const { query } = req
+  const offset = Math.max(+query.offset || 0, 0)
+  const limit = Math.max(Math.min(+query.limit || 20, 50), 1)
 
   const dbQuery = db('entries')
 
@@ -27,8 +29,8 @@ router.get('/', function (req, res, next) {
 
   const searchQuery = dbQuery.clone()
     .select(['name', 'source', 'homepage', 'description'])
-    .offset(+query.offset || 0)
-    .limit(Math.min(+query.limit || 20, 50))
+    .offset(offset)
+    .limit(limit)
     .orderBy('name', 'asc')
 
   return Promise.all<any[], [{ count: string }]>([searchQuery, totalQuery])
