@@ -18,7 +18,7 @@
     "prepublish": "typings install && npm run build",
     "start": "nf start --wrap",
     "start-watch": "nodemon --exec \"npm run start\" --watch dist",
-    "migrate": "migrate -c dist"
+    "migrate": "immigration -d dist/migrations"
   },
   "engines": {
     "node": "4.2.3"
@@ -63,10 +63,10 @@
     "batch": "^0.5.3",
     "express": "^4.13.3",
     "glob": "^6.0.1",
+    "immigration": "^1.0.0",
     "invariant": "^2.2.0",
     "knex": "^0.9.0",
     "kue": "^0.10.4",
-    "migrate": "^0.2.2",
     "native-or-bluebird": "^1.2.0",
     "pg": "^4.4.3",
     "promise-finally": "^2.0.1",
