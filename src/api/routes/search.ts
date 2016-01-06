@@ -50,7 +50,7 @@ router.get('/', function (req, res, next) {
         results: results.map(({ name, source, homepage, description }) => {
           return { name, source, homepage, description }
         }),
-        total: totals[0].count
+        total: Number(totals[0].count)
       })
     })
     .catch(next as any)
