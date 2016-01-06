@@ -11,15 +11,15 @@ router.get('/', function (req, res, next) {
 
   const dbQuery = db('entries')
 
-  if (typeof query.query === 'string') {
+  if (query.query) {
     dbQuery.whereRaw('tsv @@ plainto_tsquery(?)', [query.query])
   }
 
-  if (typeof query.name === 'string') {
+  if (query.name) {
     dbQuery.andWhere('name', query.name)
   }
 
-  if (typeof query.source === 'string') {
+  if (query.source) {
     dbQuery.andWhere('source', query.source)
   }
 
@@ -30,7 +30,7 @@ router.get('/', function (req, res, next) {
     .offset(offset)
     .limit(limit)
 
-  if (typeof query.query === 'string') {
+  if (query.query) {
     searchQuery.orderByRaw('ts_rank(tsv, plainto_tsquery(?)) DESC', [query.query])
   }
 
