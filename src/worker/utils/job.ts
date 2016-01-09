@@ -22,9 +22,26 @@ export function exists (type: string) {
 export function createAfter (fn: (job: kue.Job, cb: (err: any, value?: any) => any) => any, type: string, data: any, delay: number) {
   return function (job: kue.Job, done: (err: any, value: any) => any) {
     return fn(job, function (fnError, result) {
-      return queue.create(type, data).delay(delay).save(function (saveError: Error) {
-        return done(fnError || saveError, result)
-      })
+      const job = queue.create(type, data)
+      job.delay(delay)
+      job.removeOnComplete(true)
+      job.save((saveError: Error) => done(fnError || saveError, result))
     })
   }
+}
+
+/**
+ * Set up a function that starts or repeats itself.
+ */
+export function setup (fn: (job: kue.Job, cb: (err: any, value?: any) => any) => any, type: string, data: any, delay: number) {
+  queue.process(type, 1, createAfter(fn, type, data, delay))
+
+  return exists(type)
+    .then(exists => {
+      if (!exists) {
+        const job = queue.create(type, data)
+        job.removeOnComplete(true)
+        job.save()
+      }
+    })
 }
