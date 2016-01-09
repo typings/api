@@ -42,7 +42,6 @@ router.get('/', function (req, res, next) {
     .select(['name', 'source', 'homepage', 'description'])
     .offset(offset)
     .limit(limit)
-    .debug()
 
   if (query.query) {
     searchQuery.orderByRaw('ts_rank(tsv, plainto_tsquery(?)) DESC', [query.query])
