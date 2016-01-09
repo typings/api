@@ -1,7 +1,9 @@
-import unthenify = require('unthenify')
 import db from '../support/knex'
 
-export const up = unthenify(function () {
+/**
+ * Create the initial tables.
+ */
+export function up () {
   return db.schema.createTable('entries', function (table) {
     table.increments('id').primary()
     table.string('name').notNullable()
@@ -21,4 +23,12 @@ export const up = unthenify(function () {
         table.unique(['entry_id', 'version'])
       })
     })
-})
+}
+
+/**
+ * Drop the initial database tables.
+ */
+export function down () {
+  return db.schema.dropTableIfExists('versions')
+    .then(() => db.schema.dropTableIfExists('entries'))
+}

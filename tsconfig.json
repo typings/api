@@ -12,7 +12,7 @@
     "src/api/index.ts",
     "src/worker/index.ts",
     "typings/main.d.ts",
-    "src/migrations/201512121504-init.ts",
-    "src/migrations/201512311517-search.ts"
+    "src/migrations/20151212150400-init.ts",
+    "src/migrations/20151231151700-search.ts"
   ]
 }

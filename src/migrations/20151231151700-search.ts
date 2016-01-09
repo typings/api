@@ -1,7 +1,9 @@
-import unthenify = require('unthenify')
 import db from '../support/knex'
 
-export const up = unthenify(function () {
+/**
+ * Update search vectors.
+ */
+export function up () {
   return db.raw('ALTER TABLE entries ADD COLUMN tsv tsvector')
     .then(() => db.raw('CREATE INDEX tsv_index ON entries USING gin(tsv)'))
     .then(() => {
@@ -31,10 +33,13 @@ CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
 ON entries FOR EACH ROW EXECUTE PROCEDURE entries_search_trigger()
 `)
     })
-})
+}
 
-export const down = unthenify(function () {
+/**
+ * Drop search vectors from table.
+ */
+export function down () {
   return db.raw('ALTER TABLE entries DROP COLUMN IF EXISTS tsv')
     .then(() => db.raw('DROP TRIGGER tsvectorupdate ON entries'))
     .then(() => db.raw('DROP FUNCTION entries_search_trigger()'))
-})
+}
