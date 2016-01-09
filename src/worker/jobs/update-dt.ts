@@ -6,12 +6,12 @@ import unthenify = require('unthenify')
 import glob = require('glob')
 import Batch = require('batch')
 import Promise = require('native-or-bluebird')
-import * as PATHS from '../../support/constants/paths'
+import { DATA_PATH } from '../../support/constants'
 
 import { cloneOrUpdate, latestCommit } from '../utils/git'
 import { insertOrUpdate } from '../utils/db'
 
-const repoPath = join(PATHS.DATA, 'DefinitelyTyped')
+const repoPath = join(DATA_PATH, 'DefinitelyTyped')
 const repoUrl = 'https://github.com/DefinitelyTyped/DefinitelyTyped.git'
 
 const globify = thenify<string, glob.IOptions, string[]>(glob)

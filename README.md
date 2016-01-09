@@ -12,11 +12,12 @@ Search all known TypeScript definitions.
 
 #### Query Parameters
 
-* **query** The phrase to search for
-* **name** The name of the project
+* **query** The search phrase
+* **name** The exact name of the project
 * **source** The source to search (`dt`, `npm`, `ambient`, `github`, `bower` or `common`)
 * **offset** The offset to search from
 * **limit** The maximum number of items to return (max: `50`)
+* **ambient** Search ambient module sources (default: `null`, boolean)
 
 ### /versions/:source/:name/:version?
 

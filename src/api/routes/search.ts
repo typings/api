@@ -2,6 +2,7 @@ import express = require('express')
 import Promise = require('native-or-bluebird')
 import arrify = require('arrify')
 import db from '../../support/knex'
+import { AMBIENT_SOURCES, MAIN_SOURCES, ALL_SOURCES } from '../../support/constants'
 
 const router = express.Router()
 
@@ -20,9 +21,20 @@ router.get('/', function (req, res, next) {
     dbQuery.andWhere('name', query.name)
   }
 
-  for (const source of arrify(query.source)) {
-    dbQuery.orWhere('source', source)
+  let sources = ALL_SOURCES
+
+  // Override the sources search using `source=` or `ambient=`.
+  if (query.source != null) {
+    sources = arrify(query.source)
+  } else if (query.ambient != null) {
+    sources = query.ambient === 'true' ? AMBIENT_SOURCES : MAIN_SOURCES
   }
+
+  dbQuery.where(function () {
+    for (const source of sources) {
+      this.orWhere('source', source)
+    }
+  })
 
   const totalQuery = dbQuery.clone().count('id')
 
@@ -30,6 +42,7 @@ router.get('/', function (req, res, next) {
     .select(['name', 'source', 'homepage', 'description'])
     .offset(offset)
     .limit(limit)
+    .debug()
 
   if (query.query) {
     searchQuery.orderByRaw('ts_rank(tsv, plainto_tsquery(?)) DESC', [query.query])

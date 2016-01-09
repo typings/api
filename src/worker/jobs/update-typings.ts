@@ -7,10 +7,9 @@ import Batch = require('batch')
 import unthenify = require('unthenify')
 import { cloneOrUpdate } from '../utils/git'
 import { insertOrUpdate } from '../utils/db'
+import { DATA_PATH } from '../../support/constants'
 
-import * as PATHS from '../../support/constants/paths'
-
-const repoPath = join(PATHS.DATA, 'registry')
+const repoPath = join(DATA_PATH, 'registry')
 const repoUrl = 'https://github.com/typings/registry.git'
 
 const globify = thenify<string, glob.IOptions, string[]>(glob)
