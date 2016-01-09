@@ -1,5 +1,6 @@
 import express = require('express')
 import Promise = require('native-or-bluebird')
+import arrify = require('arrify')
 import db from '../../support/knex'
 
 const router = express.Router()
@@ -19,8 +20,8 @@ router.get('/', function (req, res, next) {
     dbQuery.andWhere('name', query.name)
   }
 
-  if (query.source) {
-    dbQuery.andWhere('source', query.source)
+  for (const source of arrify(query.source)) {
+    dbQuery.orWhere('source', source)
   }
 
   const totalQuery = dbQuery.clone().count('id')

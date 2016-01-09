@@ -16,6 +16,7 @@
     "blue-tape": "github:typings/typed-blue-tape#a4e41a85d6f760e7c60088127968eae7d3a556fa"
   },
   "dependencies": {
+    "arrify": "github:typings/typed-arrify#32383d5fd3e6a8614abb6dba254a3aab07cd7424",
     "basic-auth-connect": "file:custom_typings/basic-auth-connect.d.ts",
     "batch": "file:custom_typings/batch.d.ts",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",

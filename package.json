@@ -59,6 +59,7 @@
     "typings": "^0.4.1"
   },
   "dependencies": {
+    "arrify": "^1.0.1",
     "basic-auth-connect": "^1.0.0",
     "batch": "^0.5.3",
     "express": "^4.13.3",
