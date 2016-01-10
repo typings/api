@@ -24,9 +24,9 @@ router.get('/', function (req, res, next) {
   let sources = ALL_SOURCES
 
   // Override the sources search using `source=` or `ambient=`.
-  if (query.source != null) {
+  if (query.source) {
     sources = arrify(query.source)
-  } else if (query.ambient != null) {
+  } else if (query.ambient) {
     sources = query.ambient === 'true' ? AMBIENT_SOURCES : MAIN_SOURCES
   }
 
