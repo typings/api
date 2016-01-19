@@ -4,11 +4,11 @@
 
 ## Usage
 
-Simple RESTful API for integration with any source.
+Simple RESTful API for typings integration. Available at https://api.typings.org/.
 
 ### /search
 
-Search all known TypeScript definitions.
+Search known TypeScript definitions.
 
 #### Query Parameters
 
@@ -21,7 +21,7 @@ Search all known TypeScript definitions.
 
 ### /versions/:source/:name/:version?
 
-Print the details in the registry.
+Print version details from the registry.
 
 #### URI Parameters
 
