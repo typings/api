@@ -1,7 +1,7 @@
 import { join } from 'path'
 
 /* Paths */
-export const DATA_PATH = join(__dirname, '../../../data')
+export const DATA_PATH = join(__dirname, '../../data')
 
 /* Jobs */
 export const JOB_UPDATE_DT = 'update definitelytyped'
