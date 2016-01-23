@@ -61,7 +61,12 @@ router.get('/', function (req, res, next) {
     .then(([results, totals]) => {
       return res.json({
         results: results.map(({ name, source, homepage, description }) => {
-          return { name, source, homepage, description }
+          return {
+            name,
+            source,
+            homepage: homepage || getHomepage(source, name),
+            description
+          }
         }),
         total: Number(totals[0].count)
       })
@@ -70,3 +75,16 @@ router.get('/', function (req, res, next) {
 })
 
 export default router
+
+/**
+ * Get the default homepage for registry entries.
+ */
+function getHomepage (source: string, name: string) {
+  if (source === 'npm') {
+    return `https://www.npmjs.com/package/${name}`
+  }
+
+  if (source === 'github') {
+    return `https://github.com/${name}`
+  }
+}
