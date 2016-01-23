@@ -1,12 +1,13 @@
 import kue = require('kue')
 import Promise = require('native-or-bluebird')
 import thenify = require('thenify')
+import unthenify = require('unthenify')
 import queue from '../../support/kue'
 
 /**
  * Check if a job exists in the queue.
  */
-export function exists (type: string) {
+export function jobExists (type: string) {
   return Promise.all<kue.Job[], kue.Job[]>([
     thenify(done => kue.Job.rangeByType(type, 'delayed', 0, 1, 'asc', done))(),
     thenify(done => kue.Job.rangeByType(type, 'active', 0, 1, 'asc', done))()
@@ -19,24 +20,25 @@ export function exists (type: string) {
 /**
  * Create a job after each one finishes.
  */
-export function createAfter (fn: (job: kue.Job, cb: (err: any, value?: any) => any) => any, type: string, data: any, delay: number) {
+export function createJobAfter (fn: (job: kue.Job) => Promise<any>, type: string, delay: number) {
   return function (job: kue.Job, done: (err: any, value: any) => any) {
-    return fn(job, function (fnError, result) {
-      const job = queue.create(type, data)
-      job.delay(delay)
-      job.removeOnComplete(true)
-      job.save((saveError: Error) => done(fnError || saveError, result))
-    })
+    return fn(job)
+      .then(function (data) {
+        const job = queue.create(type, data)
+        job.delay(delay)
+        job.removeOnComplete(true)
+        return thenify(cb => job.save(cb))()
+      })
   }
 }
 
 /**
  * Set up a function that starts or repeats itself.
  */
-export function setup (fn: (job: kue.Job, cb: (err: any, value?: any) => any) => any, type: string, data: any, delay: number) {
-  queue.process(type, 1, createAfter(fn, type, data, delay))
+export function setupRepeatJob (fn: (job: kue.Job) => Promise<any>, type: string, data: any, delay: number) {
+  queue.process(type, 1, unthenify(createJobAfter(fn, type, delay)))
 
-  return exists(type)
+  return jobExists(type)
     .then(exists => {
       if (!exists) {
         const job = queue.create(type, data)

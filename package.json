@@ -68,10 +68,13 @@
     "invariant": "^2.2.0",
     "knex": "^0.9.0",
     "kue": "^0.10.4",
+    "minimatch": "^3.0.0",
+    "ms": "^0.7.1",
     "native-or-bluebird": "^1.2.0",
     "pg": "^4.4.3",
     "promise-finally": "^2.0.1",
     "semver": "^5.1.0",
+    "split": "^1.0.0",
     "thenify": "^3.1.1",
     "unthenify": "^1.0.0"
   }
