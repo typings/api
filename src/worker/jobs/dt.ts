@@ -7,7 +7,7 @@ import queue from '../../support/kue'
 import db from '../../support/knex'
 
 import { updateOrClone, commitsSince, commitFilesChanged, getFile } from './support/git'
-import { insertOrUpdate } from './support/db'
+import { upsert } from './support/db'
 
 import {
   JOB_INDEX_DT_COMMIT,
@@ -128,7 +128,7 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
         homepage = contentHomepage[1]
       }
 
-      return insertOrUpdate(
+      return upsert(
         'entries',
         { name, source, homepage },
         ['homepage'],
@@ -136,7 +136,7 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
         'id'
       )
         .then((id: string) => {
-          return insertOrUpdate(
+          return upsert(
             'versions',
             {
               entry_id: id,

@@ -1,7 +1,7 @@
 import Promise = require('native-or-bluebird')
 import db from '../../../support/knex'
 
-export function insertOrUpdate (
+export function upsert (
   table: string,
   data: { [key: string]: string | number | boolean },
   updates: string[],

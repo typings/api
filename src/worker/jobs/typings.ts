@@ -4,7 +4,7 @@ import thenify = require('thenify')
 import { Minimatch } from 'minimatch'
 import arrify = require('arrify')
 import { updateOrClone, commitsSince, commitFilesChanged, getFile } from './support/git'
-import { insertOrUpdate } from './support/db'
+import { upsert } from './support/db'
 import queue from '../../support/kue'
 import db from '../../support/knex'
 
@@ -82,11 +82,15 @@ export function indexTypingsFileChange (job: kue.Job) {
         .del()
         .innerJoin('entries', 'entries.id', 'versions.entry_id')
         .where('entries.name', '=', name)
-        .then(() => {
-          return db('entries')
-            .transacting(trx)
-            .where('name', '=', name)
-            .del()
+        .where('entries.source', '=', source)
+        .returning('entry_id')
+        .then(rows => {
+          return Promise.all(rows.map((entryId: string) => {
+            return db('entries')
+              .transacting(trx)
+              .del()
+              .where('id', '=', entryId)
+          }))
         })
         .then(trx.commit)
         .catch(trx.rollback)
@@ -103,7 +107,7 @@ export function indexTypingsFileChange (job: kue.Job) {
         return
       }
 
-      return insertOrUpdate(
+      return upsert(
         'entries',
         { name, source, homepage },
         ['homepage'],
@@ -132,7 +136,7 @@ export function indexTypingsFileChange (job: kue.Job) {
           }
 
           return Promise.all(inserts.map(insert => {
-            return insertOrUpdate(
+            return upsert(
               'versions',
               insert,
               ['location', 'compiler', 'description'],
@@ -142,6 +146,7 @@ export function indexTypingsFileChange (job: kue.Job) {
             .then(() => {
               return db('versions')
                 .del()
+                .where('entry_id', id)
                 .whereNotIn('location', inserts.map(x => x.location))
             })
         })
