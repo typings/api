@@ -71,9 +71,7 @@ export function commitFilesChanged (cwd: string, commit: string) {
         return []
       }
 
-      return stdout.trim().split(/\r?\n/).map(line => {
-        return [line.charAt(0), line.substr(1).trim()]
-      })
+      return stdout.trim().split(/\r?\n/).map(line => line.split('\t'))
     })
 }
 
