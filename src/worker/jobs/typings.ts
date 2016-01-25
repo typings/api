@@ -77,19 +77,22 @@ export function indexTypingsFileChange (job: kue.Job) {
 
   if (type === 'D') {
     return db.transaction(trx => {
-      return db('versions')
+      return db('entries')
         .transacting(trx)
-        .del()
-        .innerJoin('entries', 'entries.id', 'versions.entry_id')
-        .where('entries.name', '=', name)
-        .where('entries.source', '=', source)
-        .returning('entry_id')
-        .then(rows => {
-          return Promise.all(rows.map((entryId: string) => {
-            return db('entries')
+        .select('id')
+        .where({ name, source })
+        .then((rows) => {
+          return Promise.all(rows.map(({ id }) => {
+            return db('versions')
               .transacting(trx)
               .del()
-              .where('id', '=', entryId)
+              .where('entry_id', '=', id)
+              .then(() => {
+                return db('entries')
+                  .transacting(trx)
+                  .del()
+                  .where('id', '=', id)
+              })
           }))
         })
         .then(trx.commit)
