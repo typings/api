@@ -67,11 +67,13 @@ export function commitsSince (cwd: string, commit?: string): stream.Transform {
 export function commitFilesChanged (cwd: string, commit: string) {
   return execify(`git show --pretty="format:" --name-status --diff-filter=ADM ${commit}`, { cwd })
     .then(([stdout]) => {
-      if (stdout.length === 0) {
+      const out = stdout.trim()
+
+      if (out.length === 0) {
         return []
       }
 
-      return stdout.trim().split(/\r?\n/).map(line => line.split('\t'))
+      return out.split(/\r?\n/).map(line => line.split('\t'))
     })
 }
 
