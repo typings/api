@@ -44,9 +44,11 @@ function processCommits (job: kue.Job) {
     stream.on('data', function (currentCommit: string) {
       commit = currentCommit
 
-      const job = queue.create(JOB_INDEX_DT_COMMIT, { commit })
-      job.removeOnComplete(true)
-      job.save()
+      job.log(`Commit: ${commit}`)
+
+      const commitJob = queue.create(JOB_INDEX_DT_COMMIT, { commit })
+      commitJob.removeOnComplete(true)
+      commitJob.save()
     })
 
     stream.on('error', reject)
@@ -63,14 +65,18 @@ export function indexDtCommit (job: kue.Job) {
   return commitFilesChanged(REPO_DT_PATH, commit)
     .then(files => {
       return Promise.all(files.map(change => {
-        if (!definitionPaths.match(change[1])) {
+        const matched = definitionPaths.match(change[1])
+
+        job.log(`Change (${matched ? 'matched' : 'not matched'}): ${change[0]} ${change[1]}`)
+
+        if (!matched) {
           return
         }
 
         return thenify(cb => {
-          const job = queue.createJob(JOB_INDEX_DT_FILE_CHANGE, { change, commit })
-          job.removeOnComplete(true)
-          job.save(cb)
+          const fileJob = queue.createJob(JOB_INDEX_DT_FILE_CHANGE, { change, commit })
+          fileJob.removeOnComplete(true)
+          fileJob.save(cb)
         })()
       }))
     })
