@@ -76,6 +76,9 @@ export function indexDtCommit (job: kue.Job) {
     })
 }
 
+/**
+ * Index file changes sequentially.
+ */
 export function indexDtFileChange (job: kue.Job): Promise<any> {
   const source = 'dt'
   const { change, commit } = job.data
@@ -146,6 +149,17 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
             ['location'],
             ['entry_id', 'version']
           )
+            .then(() => {
+              // Overrides the previous version.
+              if (version == null) {
+                return
+              }
+
+              // Remove the old "unknown" DT version after new version inserts.
+              return db('versions')
+                .del()
+                .where({ entry_id: id, version: '*' })
+            })
         })
     })
 }
@@ -165,6 +179,9 @@ function normalizeVersion (version: string) {
   return version
 }
 
+/**
+ * Get the Typings location for DefinitelyTyped typings.
+ */
 function getLocation (path: string, commit: string) {
   return `github:DefinitelyTyped/DefinitelyTyped/${path.replace(/\\/g, '/')}#${commit}`
 }
