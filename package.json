@@ -62,6 +62,7 @@
     "arrify": "^1.0.1",
     "basic-auth-connect": "^1.0.0",
     "batch": "^0.5.3",
+    "debug": "^2.2.0",
     "express": "^4.13.3",
     "glob": "^6.0.1",
     "immigration": "^1.0.0",

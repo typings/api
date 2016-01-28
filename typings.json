@@ -19,6 +19,7 @@
     "arrify": "github:typings/typed-arrify#32383d5fd3e6a8614abb6dba254a3aab07cd7424",
     "basic-auth-connect": "file:custom_typings/basic-auth-connect.d.ts",
     "batch": "file:custom_typings/batch.d.ts",
+    "debug": "github:typings/typed-debug#0a12b05a76400107c70a266dcd4c2b656baa7dae",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
     "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",
     "native-or-bluebird": "github:typings/typed-native-or-bluebird#2f6bf64abda66d137016576086e9e1c0dac45469",

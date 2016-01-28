@@ -3,6 +3,7 @@ import cp = require('child_process')
 import stream = require('stream')
 import thenify = require('thenify')
 import split = require('split')
+import debug from '../../../support/debug'
 
 const statify = thenify(fs.stat)
 const execify = thenify<string, Object, [string, string]>(cp.exec)
@@ -12,42 +13,50 @@ const lastUpdated: { [path: string]: number } = {}
 /**
  * Clone or update a repo path.
  */
-export function updateOrClone (path: string, repo: string, timeout: number) {
+export function updateOrClone (cwd: string, repo: string, timeout: number) {
   const now = Date.now()
-  const updated = lastUpdated[path] || 0
+  const updated = lastUpdated[cwd] || 0
 
-  return statify(path)
+  return statify(cwd)
     .then<any>(
       (stats) => {
-        if (stats.isDirectory()) {
+        const isDir = stats.isDirectory()
+
+        debug('update or clone: %s %s', isDir, cwd)
+
+        if (isDir) {
           // Only update if time has elasped.
           if (updated + timeout < now) {
-            return update(path).then(function () {
-              lastUpdated[path] = now
+            return update(cwd).then(function () {
+              lastUpdated[cwd] = now
             })
           }
 
           return
         }
 
-        return clone(path, repo)
+        return clone(cwd, repo)
       },
-      () => clone(path, repo)
+      () => clone(cwd, repo)
     )
 }
 
 /**
  * Update a repo contents.
  */
-export function update (path: string) {
-  return execify('git pull', { cwd: path })
+export function update (cwd: string) {
+  debug('git pull: %s', cwd)
+
+  return execify('git pull', { cwd })
 }
 
 /**
  * Clone a repo contents to path.
  */
-export function clone (path: string, repo: string) {
-  return execify(`git clone ${repo} ${path}`, {})
+export function clone (cwd: string, repo: string) {
+  debug('git clone: %s %s', repo, cwd)
+
+  return execify(`git clone ${repo} ${cwd}`, {})
 }
 
 /**
@@ -56,6 +65,8 @@ export function clone (path: string, repo: string) {
 export function commitsSince (cwd: string, commit?: string): stream.Transform {
   const stream = cp.spawn('git', ['rev-list', '--reverse', commit ? `${commit}..HEAD` : 'HEAD'], { cwd })
 
+  debug('git rev-list: %s %s', commit, cwd)
+
   return stream.stdout.pipe(split(null, null, { trailing: false }))
 }
 
@@ -63,6 +74,8 @@ export function commitsSince (cwd: string, commit?: string): stream.Transform {
  * Get the files changes made by a commit.
  */
 export function commitFilesChanged (cwd: string, commit: string) {
+  debug('git show: %s %s', commit, cwd)
+
   return execify(`git show --pretty="format:" --name-status --diff-filter=ADM ${commit}`, { cwd })
     .then(([stdout]) => {
       const out = stdout.trim()
@@ -79,6 +92,8 @@ export function commitFilesChanged (cwd: string, commit: string) {
  * Get file contents at a commit hash.
  */
 export function getFile (cwd: string, path: string, commit: string, maxBuffer: number) {
+  debug('git show file: %s %s', commit, cwd)
+
   return new Promise<string>((resolve, reject) => {
     const stream = cp.spawn('git', ['show', `${commit}:${path}`], { cwd })
     let data = ''
