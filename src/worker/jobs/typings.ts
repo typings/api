@@ -38,7 +38,12 @@ function processCommits (job: kue.Job) {
         const commitJob = queue.create(JOB_INDEX_TYPINGS_COMMIT, { commit })
         commitJob.removeOnComplete(true)
         return thenify(cb => commitJob.save(cb))()
-      })).then(() => commits.pop() || commit)
+      }))
+        .then(() => {
+          return {
+            commit: commits.pop() || commit
+          }
+        })
     })
 }
 
