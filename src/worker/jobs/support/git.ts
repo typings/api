@@ -14,15 +14,17 @@ const lastUpdated: { [path: string]: number } = {}
  */
 export function updateOrClone (path: string, repo: string, timeout: number) {
   const now = Date.now()
-  const updated = (lastUpdated[path] || now)
+  const updated = lastUpdated[path] || 0
 
   return statify(path)
-    .then(
+    .then<any>(
       (stats) => {
         if (stats.isDirectory()) {
           // Only update if time has elasped.
           if (updated + timeout < now) {
-            return update(path)
+            return update(path).then(function () {
+              lastUpdated[path] = now
+            })
           }
 
           return
@@ -32,10 +34,6 @@ export function updateOrClone (path: string, repo: string, timeout: number) {
       },
       () => clone(path, repo)
     )
-    .then(() => {
-      // Cache the current update time.
-      lastUpdated[path] = now
-    })
 }
 
 /**
