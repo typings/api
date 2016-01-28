@@ -3,7 +3,7 @@ import { sep } from 'path'
 import thenify = require('thenify')
 import { Minimatch } from 'minimatch'
 import arrify = require('arrify')
-import { updateOrClone, commitsSince, commitFilesChanged, getFile } from './support/git'
+import { repoUpdated, commitsSince, commitFilesChanged, getFile } from './support/git'
 import { upsert } from './support/db'
 import queue from '../../support/kue'
 import db from '../../support/knex'
@@ -22,7 +22,7 @@ const registryPaths = new Minimatch('{ambient,npm,github,bower,common}/**/*.json
  * Job queue processing registry data.
  */
 export function updateTypings (job: kue.Job) {
-  return updateOrClone(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
+  return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
     .then(() => processCommits(job))
 }
 
@@ -30,29 +30,23 @@ export function updateTypings (job: kue.Job) {
  * Process commits since last job.
  */
 function processCommits (job: kue.Job) {
-  return new Promise((resolve, reject) => {
-    let { commit } = job.data
-    const stream = commitsSince(REPO_TYPINGS_PATH, commit)
+  const { commit } = job.data
 
-    stream.on('data', function (currentCommit: string) {
-      commit = currentCommit
-
-      job.log(`Commit: ${commit}`)
-
-      const commitJob = queue.create(JOB_INDEX_TYPINGS_COMMIT, { commit })
-      commitJob.removeOnComplete(true)
-      commitJob.save()
+  return commitsSince(REPO_TYPINGS_PATH, commit)
+    .then(function (commits) {
+      return Promise.all(commits.map(function (commit) {
+        const commitJob = queue.create(JOB_INDEX_TYPINGS_COMMIT, { commit })
+        commitJob.removeOnComplete(true)
+        return thenify(cb => commitJob.save(cb))()
+      })).then(() => commits.pop() || commit)
     })
-
-    stream.on('error', reject)
-    stream.on('end', () => resolve({ commit }))
-  })
 }
 
 export function indexTypingsCommit (job: kue.Job) {
   const { commit } = job.data
 
-  return commitFilesChanged(REPO_TYPINGS_PATH, commit)
+  return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
+    .then(() => commitFilesChanged(REPO_TYPINGS_PATH, commit))
     .then(files => {
       return Promise.all(files.map(change => {
         const matched = registryPaths.match(change[1])
@@ -106,7 +100,8 @@ export function indexTypingsFileChange (job: kue.Job) {
     })
   }
 
-  return getFile(REPO_TYPINGS_PATH, path, commit, 1024 * 400)
+  return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
+    .then(() => getFile(REPO_TYPINGS_PATH, path, commit, 1024 * 400))
     .then(data => JSON.parse(data))
     .then(entry => {
       const { homepage, versions } = entry

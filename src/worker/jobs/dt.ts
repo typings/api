@@ -6,7 +6,7 @@ import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
 import db from '../../support/knex'
 
-import { updateOrClone, commitsSince, commitFilesChanged, getFile } from './support/git'
+import { repoUpdated, commitsSince, commitFilesChanged, getFile } from './support/git'
 import { upsert } from './support/db'
 
 import {
@@ -29,7 +29,7 @@ const definitionPaths = new Minimatch('*/*.d.ts')
  * Job queue processing DefinitelyTyped repo data.
  */
 export function updateDt (job: kue.Job) {
-  return updateOrClone(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
+  return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
     .then(() => processCommits(job))
 }
 
@@ -37,23 +37,16 @@ export function updateDt (job: kue.Job) {
  * Process commits since last job.
  */
 function processCommits (job: kue.Job) {
-  return new Promise((resolve, reject) => {
-    let { commit } = job.data
-    const stream = commitsSince(REPO_DT_PATH, commit)
+  const { commit } = job.data
 
-    stream.on('data', function (currentCommit: string) {
-      commit = currentCommit
-
-      job.log(`Commit: ${commit}`)
-
-      const commitJob = queue.create(JOB_INDEX_DT_COMMIT, { commit })
-      commitJob.removeOnComplete(true)
-      commitJob.save()
+  return commitsSince(REPO_DT_PATH, commit)
+    .then(function (commits) {
+      return Promise.all(commits.map(function (commit) {
+        const commitJob = queue.create(JOB_INDEX_DT_COMMIT, { commit })
+        commitJob.removeOnComplete(true)
+        return thenify(cb => commitJob.save(cb))()
+      })).then(() => commits.pop() || commit)
     })
-
-    stream.on('error', reject)
-    stream.on('end', () => resolve({ commit }))
-  })
 }
 
 /**
@@ -62,7 +55,8 @@ function processCommits (job: kue.Job) {
 export function indexDtCommit (job: kue.Job) {
   const { commit } = job.data
 
-  return commitFilesChanged(REPO_DT_PATH, commit)
+  return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
+    .then(() => commitFilesChanged(REPO_DT_PATH, commit))
     .then(files => {
       return Promise.all(files.map(change => {
         const matched = definitionPaths.match(change[1])
@@ -123,7 +117,8 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
     version = normalizeVersion(filename.substr(name.length + 1))
   }
 
-  return getFile(REPO_DT_PATH, path, commit, 1024)
+  return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
+    .then(() => getFile(REPO_DT_PATH, path, commit, 1024))
     .then(contents => {
       const contentVersion = DT_CONTENT_VERSION_REGEXP.exec(contents)
       const contentHomepage = DT_CONTENT_PROJECT_REGEXP.exec(contents)

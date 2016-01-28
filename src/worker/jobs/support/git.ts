@@ -1,6 +1,5 @@
 import fs = require('fs')
 import cp = require('child_process')
-import stream = require('stream')
 import thenify = require('thenify')
 import split = require('split')
 import debug from '../../../support/debug'
@@ -13,9 +12,14 @@ const lastUpdated: { [path: string]: number } = {}
 /**
  * Clone or update a repo path.
  */
-export function updateOrClone (cwd: string, repo: string, timeout: number) {
+export function repoUpdated (cwd: string, repo: string, timeout: number) {
   const now = Date.now()
   const updated = lastUpdated[cwd] || 0
+
+  // Avoid re-updating/cloning if we're retrieved it recently.
+  if (updated + timeout > now) {
+    return Promise.resolve()
+  }
 
   return statify(cwd)
     .then<any>(
@@ -25,20 +29,16 @@ export function updateOrClone (cwd: string, repo: string, timeout: number) {
         debug('update or clone: %s %s', isDir, cwd)
 
         if (isDir) {
-          // Only update if time has elasped.
-          if (updated + timeout < now) {
-            return update(cwd).then(function () {
-              lastUpdated[cwd] = now
-            })
-          }
-
-          return
+          return update(cwd)
         }
 
         return clone(cwd, repo)
       },
       () => clone(cwd, repo)
     )
+      .then(() => {
+        lastUpdated[cwd] = now
+      })
 }
 
 /**
@@ -62,12 +62,23 @@ export function clone (cwd: string, repo: string) {
 /**
  * Get commits since an existing commit hash.
  */
-export function commitsSince (cwd: string, commit?: string): stream.Transform {
-  const stream = cp.spawn('git', ['rev-list', '--reverse', commit ? `${commit}..HEAD` : 'HEAD'], { cwd })
+export function commitsSince (cwd: string, commit?: string) {
+  return new Promise<string[]>((resolve, reject) => {
+    const stream = cp.spawn('git', ['rev-list', '--reverse', commit ? `${commit}..HEAD` : 'HEAD'], { cwd })
+    const commits: string[] = []
 
-  debug('git rev-list: %s %s', commit, cwd)
+    debug('git rev-list: %s %s', commit, cwd)
 
-  return stream.stdout.pipe(split(null, null, { trailing: false }))
+    stream.on('error', reject)
+    stream.stdout.on('error', reject)
+    stream.stdout.pipe(split(null, null, { trailing: false }))
+      .on('data', function (line: string) {
+        commits.push(line)
+      })
+      .on('end', function () {
+        return resolve(commits)
+      })
+  })
 }
 
 /**
@@ -92,7 +103,7 @@ export function commitFilesChanged (cwd: string, commit: string) {
  * Get file contents at a commit hash.
  */
 export function getFile (cwd: string, path: string, commit: string, maxBuffer: number) {
-  debug('git show file: %s %s', commit, cwd)
+  debug('git show file: %s %s %s', commit, maxBuffer, cwd)
 
   return new Promise<string>((resolve, reject) => {
     const stream = cp.spawn('git', ['show', `${commit}:${path}`], { cwd })
@@ -111,6 +122,7 @@ export function getFile (cwd: string, path: string, commit: string, maxBuffer: n
       length += len
     })
 
+    stream.on('error', reject)
     stream.stdout.on('error', reject)
     stream.stdout.on('end', () => resolve(data))
   })
