@@ -1,5 +1,5 @@
 import express = require('express')
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 import arrify = require('arrify')
 import db from '../../support/knex'
 import { AMBIENT_SOURCES, MAIN_SOURCES, ALL_SOURCES } from '../../support/constants'

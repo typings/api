@@ -14,6 +14,7 @@
     "typings/main.d.ts",
     "src/migrations/20151212150400-init.ts",
     "src/migrations/20151231151700-search.ts",
-    "src/migrations/20160109201227-clear-old-kue-job.ts"
+    "src/migrations/20160109201227-clear-old-kue-job.ts",
+    "src/migrations/20160210235046-new-sources.ts"
   ]
 }

@@ -1,7 +1,7 @@
 import kue = require('kue')
 import { basename } from 'path'
 import thenify = require('thenify')
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
 import db from '../../support/knex'

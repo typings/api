@@ -46,37 +46,37 @@
   },
   "homepage": "https://github.com/typings/api",
   "devDependencies": {
-    "blue-tape": "^0.1.10",
+    "blue-tape": "^0.2.0",
     "foreman": "^1.4.1",
     "istanbul": "1.0.0-alpha.2",
-    "nock": "^3.0.0",
+    "nock": "^7.0.2",
     "nodemon": "^1.8.1",
     "pre-commit": "^1.0.6",
     "tap-spec": "^4.1.1",
     "ts-node": "^0.5.0",
     "tslint": "^3.1.1",
     "typescript": "^1.7.3",
-    "typings": "^0.4.1"
+    "typings": "^0.6.7"
   },
   "dependencies": {
+    "any-promise": "^1.1.0",
     "arrify": "^1.0.1",
     "basic-auth-connect": "^1.0.0",
     "batch": "^0.5.3",
     "debug": "^2.2.0",
     "express": "^4.13.3",
-    "glob": "^6.0.1",
+    "glob": "^7.0.0",
     "immigration": "^1.0.0",
     "invariant": "^2.2.0",
     "knex": "^0.9.0",
     "kue": "^0.10.4",
     "minimatch": "^3.0.0",
     "ms": "^0.7.1",
-    "native-or-bluebird": "^1.2.0",
     "pg": "^4.4.3",
     "promise-finally": "^2.0.1",
     "semver": "^5.1.0",
     "split": "^1.0.0",
     "thenify": "^3.1.1",
-    "unthenify": "^1.0.0"
+    "unthenify": "^1.0.1"
   }
 }

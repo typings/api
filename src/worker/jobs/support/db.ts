@@ -1,4 +1,4 @@
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 import db from '../../../support/knex'
 
 export function upsert (

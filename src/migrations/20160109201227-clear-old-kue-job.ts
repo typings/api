@@ -1,6 +1,6 @@
 import kue = require('kue')
 import thenify = require('thenify')
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 
 import '../support/kue'
 

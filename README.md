@@ -14,7 +14,7 @@ Search known TypeScript definitions.
 
 * **query** The search phrase
 * **name** The exact name of the project
-* **source** The source to search (`dt`, `npm`, `ambient`, `github`, `bower` or `common`)
+* **source** The source to search (from the [registry](https://github.com/typings/registry#structure) + `dt`)
 * **offset** The offset to search from
 * **limit** The maximum number of items to return (max: `50`)
 * **ambient** Search ambient module sources (default: `null`, boolean)

@@ -1,5 +1,5 @@
 import kue = require('kue')
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 import thenify = require('thenify')
 import unthenify = require('unthenify')
 import queue from '../../support/kue'

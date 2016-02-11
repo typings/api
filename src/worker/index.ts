@@ -1,4 +1,4 @@
-import Promise = require('native-or-bluebird')
+import Promise = require('any-promise')
 import ms = require('ms')
 import unthenify = require('unthenify')
 import queue from '../support/kue'

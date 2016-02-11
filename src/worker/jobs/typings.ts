@@ -16,7 +16,7 @@ import {
   TIMEOUT_REPO_POLL
 } from '../../support/constants'
 
-const registryPaths = new Minimatch('{ambient,npm,github,bower,common}/**/*.json')
+const registryPaths = new Minimatch('{npm,github,bower,common,shared,lib,env,global}/**/*.json')
 
 /**
  * Job queue processing registry data.
