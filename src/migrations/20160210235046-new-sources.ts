@@ -5,6 +5,8 @@ import db from '../support/knex'
  */
 export function up () {
   return db.raw('ALTER TABLE entries DROP CONSTRAINT entries_source_check')
+    .then(() => db.raw(`DELETE FROM versions WHERE entry_id IN (SELECT id FROM entries WHERE source = 'ambient')`))
+    .then(() => db.raw(`DELETE FROM entries WHERE source = 'ambient'`))
 }
 
 /**
