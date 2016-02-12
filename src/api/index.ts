@@ -1,8 +1,4 @@
-import kue = require('kue')
-import express = require('express')
-import basicAuth = require('basic-auth-connect')
 import invariant = require('invariant')
-import routes from './routes'
 
 const queueUsername = process.env.QUEUE_UI_USERNAME
 const queuePassword = process.env.QUEUE_UI_PASSWORD
@@ -15,10 +11,15 @@ invariant(
   'New Relic configuration is incomplete (https://github.com/newrelic/node-newrelic#configuring-the-module)'
 )
 
-// Import New Relic setup.
+// Import New Relic *first*.
 import 'newrelic'
 
-// Must create the Kue client before mounting the GUI.
+import kue = require('kue')
+import express = require('express')
+import basicAuth = require('basic-auth-connect')
+import routes from './routes'
+
+// Create a Kue client before mounting UI.
 import '../support/kue'
 
 const app = express()
