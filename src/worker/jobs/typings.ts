@@ -83,6 +83,8 @@ export function indexTypingsFileChange (job: kue.Job) {
   if (type === 'D') {
     return getDate(REPO_TYPINGS_PATH, commit)
       .then(commitDate => {
+        const updated = commitDate.toUTCString()
+
         return db.transaction(trx => {
           return db('entries')
             .transacting(trx)
@@ -94,13 +96,13 @@ export function indexTypingsFileChange (job: kue.Job) {
                   .transacting(trx)
                   .del()
                   .where('entry_id', '=', id)
-                  .andWhere('updated', '<', commitDate.toUTCString())
+                  .andWhere('updated', '<', updated)
                   .then(() => {
                     return db('entries')
                       .transacting(trx)
-                      .update({ active: false, updated: commitDate.toUTCString() })
+                      .update({ active: false, updated })
                       .where('id', '=', id)
-                      .andWhere('updated', '<', commitDate.toUTCString())
+                      .andWhere('updated', '<', updated)
                   })
               }))
             })
@@ -123,22 +125,35 @@ export function indexTypingsFileChange (job: kue.Job) {
 
       return getDate(REPO_TYPINGS_PATH, commit)
         .then(commitDate => {
-          return upsert(
-            'entries',
-            { name, source, homepage, updated: commitDate.toUTCString(), active: true },
-            ['homepage', 'updated', 'active'],
-            ['name', 'source'],
-            null,
-            'id'
-          )
+          const updated = commitDate.toUTCString()
+
+          return upsert({
+            table: 'entries',
+            insert: {
+              name,
+              source,
+              homepage,
+              updated,
+              active: true
+            },
+            updates: ['homepage', 'updated', 'active'],
+            conflicts: ['name', 'source'],
+            returning: 'id',
+            where: 'entries.updated < excluded.updated'
+          })
             .then((id: string) => {
+              // No update needs to occur.
+              if (id == null) {
+                return
+              }
+
               const inserts: any[] = []
 
               for (const version of Object.keys(versions)) {
                 const data: any = versions[version]
 
                 for (const value of arrify(data)) {
-                  const info: any = { entry_id: id, version, updated: commitDate.toUTCString() }
+                  const info: any = { entry_id: id, version, updated }
 
                   if (typeof value === 'string') {
                     info.location = value
@@ -155,28 +170,21 @@ export function indexTypingsFileChange (job: kue.Job) {
 
               return db.transaction(trx => {
                 return Promise.all(inserts.map(insert => {
-                  return db('versions')
-                    .transacting(trx)
-                    .first('updated')
-                    .where({ entry_id: id, version: insert.version, compiler: insert.compiler })
-                    .then((entry) => {
-                      if (entry && entry.updated > commitDate) {
-                        return
-                      }
-
-                      return upsert(
-                        'versions',
-                        insert,
-                        ['location', 'description', 'updated'],
-                        ['entry_id', 'version', 'compiler']
-                      )
-                    })
+                  return upsert({
+                    table: 'versions',
+                    insert,
+                    updates: ['location', 'description', 'updated'],
+                    conflicts: ['entry_id', 'version', 'compiler'],
+                    trx,
+                    where: 'versions.updated < excluded.updated'
+                  })
                 }))
                   .then(() => {
                     return db('versions')
                       .transacting(trx)
                       .del()
                       .where('entry_id', id)
+                      .where('updated', '<', updated)
                       .whereNotIn('location', inserts.map(x => x.location))
                   })
                   .then(trx.commit, trx.rollback)

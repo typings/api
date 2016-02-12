@@ -2,25 +2,29 @@ import knex = require('knex')
 import Promise = require('any-promise')
 import db from '../../../support/knex'
 
-export function upsert (
-  table: string,
-  data: { [key: string]: string | number | boolean },
-  updates: string[],
-  where: string[],
-  trx?: knex.Transaction,
+export interface UpsertOptions {
+  table: string
+  insert: { [key: string]: string | number | boolean }
+  updates: string[]
+  conflicts: string[]
+  trx?: knex.Transaction
+  where?: string
   returning?: string
-): Promise<string> {
-  const insert = db(table)
-    .insert(data)
-    .transacting(trx)
+}
+
+export function upsert (options: UpsertOptions): Promise<string> {
+  const insert = db(options.table)
+    .insert(options.insert)
+    .transacting(options.trx)
     .toString() +
-    ` ON CONFLICT (${where.join(', ')}) DO UPDATE SET ` +
-    updates.map(key => `${key}=excluded.${key}`) +
-    (returning ? ` RETURNING ${returning}` : '')
+    ` ON CONFLICT (${options.conflicts.join(', ')}) DO UPDATE SET ` +
+    options.updates.map(key => `${key}=excluded.${key}`) +
+    (options.where ? ` WHERE ${options.where}` : '') +
+    (options.returning ? ` RETURNING ${options.returning}` : '')
 
   return db.raw(insert).then(function (response) {
     const { rows } = response
 
-    return rows.length ? rows[0][returning] : undefined
+    return rows.length ? rows[0][options.returning] : undefined
   })
 }

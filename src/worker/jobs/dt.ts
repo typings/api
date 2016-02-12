@@ -93,18 +93,20 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
   if (type === 'D') {
     return getDate(REPO_DT_PATH, commit)
       .then(commitDate => {
+        const updated = commitDate.toUTCString()
+
         return db.transaction(trx => {
           return db('versions')
             .transacting(trx)
             .del()
             .where('location', 'LIKE', getLocation(path, '%'))
-            .andWhere('updated', '<', commitDate.toUTCString())
+            .andWhere('updated', '<', updated)
             .returning('entry_id')
             .then(rows => {
               return Promise.all(rows.map((entryId: string) => {
                 return db('entries')
                   .transacting(trx)
-                  .update({ active: false, updated: commitDate.toUTCString() })
+                  .update({ active: false, updated })
                   .where('id', entryId)
                   .whereNotExists(function () {
                     this.select().from('versions').where('entry_id', entryId)
@@ -142,37 +144,41 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
 
       return getDate(REPO_DT_PATH, commit)
         .then(commitDate => {
-          return upsert(
-            'entries',
-            { name, source, homepage, updated: commitDate.toUTCString(), active: true },
-            ['homepage', 'updated', 'active'],
-            ['name', 'source'],
-            null,
-            'id'
-          )
-            .then((id: string) => {
-              return db('versions')
-                .first('updated')
-                .where({ entry_id: id, version: version || '*', compiler: '*' })
-                .then(entry => {
-                  // Avoid inserting outdated data.
-                  if (entry && entry.updated > commitDate) {
-                    return
-                  }
+          const updated = commitDate.toUTCString()
 
-                  return upsert(
-                    'versions',
-                    {
-                      entry_id: id,
-                      version: version || '*',
-                      compiler: '*',
-                      location: getLocation(path, commit),
-                      updated: commitDate.toUTCString()
-                    },
-                    ['location', 'updated'],
-                    ['entry_id', 'version', 'compiler']
-                  )
-                })
+          return upsert({
+            table: 'entries',
+            insert: {
+              name,
+              source,
+              homepage,
+              updated,
+              active: true
+            },
+            updates: ['homepage', 'updated', 'active'],
+            conflicts: ['name', 'source'],
+            returning: 'id',
+            where: 'entries.updated < excluded.updated'
+          })
+            .then((id: string) => {
+              // No update occured.
+              if (id == null) {
+                return
+              }
+
+              return upsert({
+                table: 'versions',
+                insert: {
+                  entry_id: id,
+                  version: version || '*',
+                  compiler: '*',
+                  location: getLocation(path, commit),
+                  updated: commitDate.toUTCString()
+                },
+                updates: ['location', 'updated'],
+                conflicts: ['entry_id', 'version', 'compiler'],
+                where: 'versions.updated < excluded.updated'
+              })
             })
         })
     })
