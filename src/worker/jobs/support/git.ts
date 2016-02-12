@@ -8,6 +8,7 @@ const statify = thenify(fs.stat)
 const execify = thenify<string, Object, [string, string]>(cp.exec)
 
 const lastUpdated: { [path: string]: number } = {}
+const lastAction: { [path: string]: Promise<any> } = {}
 
 /**
  * Clone or update a repo path.
@@ -15,39 +16,45 @@ const lastUpdated: { [path: string]: number } = {}
 export function repoUpdated (cwd: string, repo: string, timeout: number) {
   const now = Date.now()
   const updated = lastUpdated[cwd] || 0
+  const action = lastAction[cwd] || Promise.resolve()
 
   // Avoid re-updating/cloning if we're retrieved it recently.
   if (updated + timeout > now) {
-    return Promise.resolve()
+    return action
   }
 
-  return statify(cwd)
-    .then<any>(
-      (stats) => {
-        const isDir = stats.isDirectory()
+  const promise = action
+    .then(() => {
+      if (updated === 0) {
+        return statify(cwd)
+          .then(
+            (stats) => {
+              if (stats.isDirectory()) {
+                return update(cwd, repo)
+              }
 
-        debug('update or clone: %s %s', isDir, cwd)
+              return clone(cwd, repo)
+            },
+            () => clone(cwd, repo)
+          )
+      }
 
-        if (isDir) {
-          return update(cwd)
-        }
+      return update(cwd, repo)
+    })
 
-        return clone(cwd, repo)
-      },
-      () => clone(cwd, repo)
-    )
-      .then(() => {
-        lastUpdated[cwd] = now
-      })
+  lastUpdated[cwd] = now
+  lastAction[cwd] = promise
+
+  return promise
 }
 
 /**
  * Update a repo contents.
  */
-export function update (cwd: string) {
+export function update (cwd: string, repo: string) {
   debug('git pull: %s', cwd)
 
-  return execify('git pull', { cwd })
+  return execify(`git pull "${repo}" master`, { cwd })
 }
 
 /**
