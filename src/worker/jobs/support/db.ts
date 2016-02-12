@@ -1,3 +1,4 @@
+import knex = require('knex')
 import Promise = require('any-promise')
 import db from '../../../support/knex'
 
@@ -6,10 +7,12 @@ export function upsert (
   data: { [key: string]: string | number | boolean },
   updates: string[],
   where: string[],
+  trx?: knex.Transaction,
   returning?: string
 ): Promise<string> {
   const insert = db(table)
     .insert(data)
+    .transacting(trx)
     .toString() +
     ` ON CONFLICT (${where.join(', ')}) DO UPDATE SET ` +
     updates.map(key => `${key}=excluded.${key}`) +

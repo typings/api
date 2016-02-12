@@ -11,7 +11,7 @@ router.get('/', function (req, res, next) {
   const offset = Math.max(+query.offset || 0, 0)
   const limit = Math.max(Math.min(+query.limit || 20, 50), 1)
 
-  const dbQuery = db('entries')
+  const dbQuery = db('entries').where('active', true)
 
   if (query.query) {
     dbQuery.whereRaw('tsv @@ plainto_tsquery(?)', [query.query])

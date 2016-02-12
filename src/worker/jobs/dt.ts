@@ -6,7 +6,7 @@ import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
 import db from '../../support/knex'
 
-import { repoUpdated, commitsSince, commitFilesChanged, getFile } from './support/git'
+import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
 import { upsert } from './support/db'
 
 import {
@@ -101,15 +101,14 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
           return Promise.all(rows.map((entryId: string) => {
             return db('entries')
               .transacting(trx)
-              .del()
+              .update({ active: false })
               .where('id', entryId)
               .whereNotExists(function () {
                 this.select().from('versions').where('entry_id', entryId)
               })
           }))
         })
-        .then(trx.commit)
-        .catch(trx.rollback)
+        .then(trx.commit, trx.rollback)
     })
   }
 
@@ -139,32 +138,35 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
 
       return upsert(
         'entries',
-        { name, source, homepage },
-        ['homepage'],
+        { name, source, homepage, active: true },
+        ['homepage', 'active'],
         ['name', 'source'],
+        null,
         'id'
       )
         .then((id: string) => {
-          return upsert(
-            'versions',
-            {
-              entry_id: id,
-              version: version || '*',
-              location: getLocation(path, commit)
-            },
-            ['location'],
-            ['entry_id', 'version']
-          )
-            .then(() => {
-              // Overrides the previous version.
-              if (version == null) {
+          return Promise.all([
+            getDate(REPO_DT_PATH, commit),
+            db('versions').first('updated').where({ entry_id: id, version: version || '*', compiler: '*' })
+          ])
+            .then(([commitDate, entry]) => {
+              // Avoid inserting outdated data.
+              if (entry && entry.updated > commitDate) {
                 return
               }
 
-              // Remove the old "unknown" DT version after new version inserts.
-              return db('versions')
-                .del()
-                .where({ entry_id: id, version: '*' })
+              return upsert(
+                'versions',
+                {
+                  entry_id: id,
+                  version: version || '*',
+                  compiler: '*',
+                  location: getLocation(path, commit),
+                  updated: commitDate.toUTCString()
+                },
+                ['location', 'updated'],
+                ['entry_id', 'version', 'compiler']
+              )
             })
         })
     })

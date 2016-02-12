@@ -45,7 +45,7 @@ function getVersions (source: string, name: string, version: string = '*') {
   }
 
   return db('versions')
-    .select(['versions.version', 'versions.description', 'versions.compiler', 'versions.location'])
+    .select(['versions.version', 'versions.description', 'versions.compiler', 'versions.location', 'versions.updated'])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .andWhere('entries.source', '=', source)
@@ -61,11 +61,11 @@ function getVersions (source: string, name: string, version: string = '*') {
         })
         .sort((a: Result, b: Result) => {
           if (a.version === '*' || !semver.valid(b.version)) {
-            return -1
+            return 1
           }
 
           if (b.version === '*' || !semver.valid(a.version)) {
-            return 1
+            return -1
           }
 
           return semver.rcompare(a.version, b.version)

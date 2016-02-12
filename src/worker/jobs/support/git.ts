@@ -127,3 +127,11 @@ export function getFile (cwd: string, path: string, commit: string, maxBuffer: n
     stream.stdout.on('end', () => resolve(data))
   })
 }
+
+/**
+ * Get the date when a commit occured.
+ */
+export function getDate (cwd: string, commit: string) {
+  return execify(`git show -s --format=%ci ${commit}`, { cwd })
+    .then(([stdout]) => new Date(stdout))
+}
