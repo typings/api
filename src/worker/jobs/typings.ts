@@ -81,9 +81,33 @@ export function indexTypingsFileChange (job: kue.Job) {
   const name = parts.join('/').replace(/\.json$/, '')
 
   if (type === 'D') {
-    return db('entries')
-      .update({ active: false })
-      .where({ name, source })
+    return getDate(REPO_TYPINGS_PATH, commit)
+      .then(commitDate => {
+        return db.transaction(trx => {
+          return db('entries')
+            .transacting(trx)
+            .select('id')
+            .where({ name, source })
+            .then((rows) => {
+              return Promise.all(rows.map(({ id }) => {
+                return db('versions')
+                  .transacting(trx)
+                  .del()
+                  .where('entry_id', '=', id)
+                  .andWhere('updated', '<=', commitDate.toUTCString())
+                  .then(() => {
+                    return db('entries')
+                      .transacting(trx)
+                      .update({ active: false, updated: commitDate.toUTCString() })
+                      .where('id', '=', id)
+                      .andWhere('updated', '<=', commitDate.toUTCString())
+                  })
+              }))
+            })
+            .then(trx.commit)
+            .catch(trx.rollback)
+        })
+      })
   }
 
   return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
@@ -97,17 +121,17 @@ export function indexTypingsFileChange (job: kue.Job) {
         return
       }
 
-      return upsert(
-        'entries',
-        { name, source, homepage, active: true },
-        ['homepage', 'active'],
-        ['name', 'source'],
-        null,
-        'id'
-      )
-        .then((id: string) => {
-          return getDate(REPO_TYPINGS_PATH, commit)
-            .then(commitDate => {
+      return getDate(REPO_TYPINGS_PATH, commit)
+        .then(commitDate => {
+          return upsert(
+            'entries',
+            { name, source, homepage, updated: commitDate.toUTCString(), active: true },
+            ['homepage', 'updated', 'active'],
+            ['name', 'source'],
+            null,
+            'id'
+          )
+            .then((id: string) => {
               const inserts: any[] = []
 
               for (const version of Object.keys(versions)) {

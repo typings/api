@@ -91,24 +91,28 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
 
   // Ignore DT deletions.
   if (type === 'D') {
-    return db.transaction(trx => {
-      return db('versions')
-        .transacting(trx)
-        .where('location', 'LIKE', getLocation(path, '%'))
-        .del()
-        .returning('entry_id')
-        .then(rows => {
-          return Promise.all(rows.map((entryId: string) => {
-            return db('entries')
-              .transacting(trx)
-              .update({ active: false })
-              .where('id', entryId)
-              .whereNotExists(function () {
-                this.select().from('versions').where('entry_id', entryId)
-              })
-          }))
+    return getDate(REPO_DT_PATH, commit)
+      .then(commitDate => {
+        return db.transaction(trx => {
+          return db('versions')
+            .transacting(trx)
+            .del()
+            .where('location', 'LIKE', getLocation(path, '%'))
+            .andWhere('updated', '<=', commitDate.toUTCString())
+            .returning('entry_id')
+            .then(rows => {
+              return Promise.all(rows.map((entryId: string) => {
+                return db('entries')
+                  .transacting(trx)
+                  .update({ active: false, updated: commitDate.toUTCString() })
+                  .where('id', entryId)
+                  .whereNotExists(function () {
+                    this.select().from('versions').where('entry_id', entryId)
+                  })
+              }))
+            })
+            .then(trx.commit, trx.rollback)
         })
-        .then(trx.commit, trx.rollback)
     })
   }
 
@@ -136,37 +140,39 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
         homepage = contentHomepage[1]
       }
 
-      return upsert(
-        'entries',
-        { name, source, homepage, active: true },
-        ['homepage', 'active'],
-        ['name', 'source'],
-        null,
-        'id'
-      )
-        .then((id: string) => {
-          return Promise.all([
-            getDate(REPO_DT_PATH, commit),
-            db('versions').first('updated').where({ entry_id: id, version: version || '*', compiler: '*' })
-          ])
-            .then(([commitDate, entry]) => {
-              // Avoid inserting outdated data.
-              if (entry && entry.updated > commitDate) {
-                return
-              }
+      return getDate(REPO_DT_PATH, commit)
+        .then(commitDate => {
+          return upsert(
+            'entries',
+            { name, source, homepage, updated: commitDate.toUTCString(), active: true },
+            ['homepage', 'updated', 'active'],
+            ['name', 'source'],
+            null,
+            'id'
+          )
+            .then((id: string) => {
+              return db('versions')
+                .first('updated')
+                .where({ entry_id: id, version: version || '*', compiler: '*' })
+                .then(entry => {
+                  // Avoid inserting outdated data.
+                  if (entry && entry.updated > commitDate) {
+                    return
+                  }
 
-              return upsert(
-                'versions',
-                {
-                  entry_id: id,
-                  version: version || '*',
-                  compiler: '*',
-                  location: getLocation(path, commit),
-                  updated: commitDate.toUTCString()
-                },
-                ['location', 'updated'],
-                ['entry_id', 'version', 'compiler']
-              )
+                  return upsert(
+                    'versions',
+                    {
+                      entry_id: id,
+                      version: version || '*',
+                      compiler: '*',
+                      location: getLocation(path, commit),
+                      updated: commitDate.toUTCString()
+                    },
+                    ['location', 'updated'],
+                    ['entry_id', 'version', 'compiler']
+                  )
+                })
             })
         })
     })

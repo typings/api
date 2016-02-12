@@ -39,7 +39,7 @@ router.get('/', function (req, res, next) {
   const totalQuery = dbQuery.clone().count('id')
 
   const searchQuery = dbQuery.clone()
-    .select(['name', 'source', 'homepage', 'description'])
+    .select(['name', 'source', 'homepage', 'description', 'updated'])
     .offset(offset)
     .limit(limit)
 
@@ -55,17 +55,19 @@ router.get('/', function (req, res, next) {
     homepage: string
     description: string
     rank: number
+    updated: Date
   }
 
   return Promise.all<Result[], [{ count: string }]>([searchQuery, totalQuery])
     .then(([results, totals]) => {
       return res.json({
-        results: results.map(({ name, source, homepage, description }) => {
+        results: results.map(({ name, source, homepage, description, updated }) => {
           return {
             name,
             source,
             homepage: homepage || getHomepage(source, name),
-            description
+            description,
+            updated
           }
         }),
         total: Number(totals[0].count)

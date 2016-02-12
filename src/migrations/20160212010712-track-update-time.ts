@@ -1,6 +1,4 @@
 import db from '../support/knex'
-import queue from '../support/kue'
-import { JOB_UPDATE_DT, JOB_UPDATE_TYPINGS } from '../support/constants'
 
 /**
  * Update the unique constraint, add updated field to versions.
@@ -28,15 +26,6 @@ export function up () {
       return db.schema.table('entries', table => {
         table.boolean('active').notNullable().defaultTo(false)
       })
-    })
-    .then(() => {
-      const dtJob = queue.create(JOB_UPDATE_DT, {})
-      dtJob.removeOnComplete(true)
-      dtJob.save()
-
-      const typingsJob = queue.create(JOB_UPDATE_TYPINGS, {})
-      typingsJob.removeOnComplete(true)
-      typingsJob.save()
     })
 }
 
