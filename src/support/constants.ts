@@ -13,7 +13,7 @@ export const JOB_INDEX_DT_FILE_CHANGE = 'INDEX_DT_FILE_CHANGE'
 export const JOB_INDEX_TYPINGS_FILE_CHANGE = 'INDEX_TYPINGS_FILE_CHANGE'
 
 /* Sources */
-export const AMBIENT_SOURCES = ['dt', 'env', 'lib']
+export const AMBIENT_SOURCES = ['dt', 'env', 'lib', 'global']
 export const MAIN_SOURCES = ['npm', 'bower', 'github', 'common', 'shared']
 export const ALL_SOURCES = MAIN_SOURCES.concat(AMBIENT_SOURCES)
 
