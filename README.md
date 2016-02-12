@@ -48,6 +48,9 @@ export DATABASE_URL="postgres://admin:admin@localhost:5432/typings_registry"
 export REDIS_URL="redis://localhost:6379"
 export QUEUE_UI_USERNAME="admin"
 export QUEUE_UI_PASSWORD="admin"
+
+export NEW_RELIC_ENABLED=false
+export NEW_RELIC_NO_CONFIG_FILE=true
 ```
 
 ## License
