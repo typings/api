@@ -98,7 +98,7 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
             .transacting(trx)
             .del()
             .where('location', 'LIKE', getLocation(path, '%'))
-            .andWhere('updated', '<=', commitDate.toUTCString())
+            .andWhere('updated', '<', commitDate.toUTCString())
             .returning('entry_id')
             .then(rows => {
               return Promise.all(rows.map((entryId: string) => {
