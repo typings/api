@@ -173,12 +173,22 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
                   version: version || '*',
                   compiler: '*',
                   location: getLocation(path, commit),
-                  updated: commitDate.toUTCString()
+                  updated
                 },
                 updates: ['location', 'updated'],
                 conflicts: ['entry_id', 'version', 'compiler'],
                 where: 'versions.updated < excluded.updated'
               })
+                .then((versionId: string) => {
+                  if (!version || !versionId) {
+                    return
+                  }
+
+                  return db('versions')
+                    .del()
+                    .where({ entry_id: id, version: '*' })
+                    .where('updated', '<', updated)
+                })
             })
         })
     })

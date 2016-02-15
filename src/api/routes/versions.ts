@@ -60,12 +60,12 @@ function getVersions (source: string, name: string, version: string = '*') {
           return semver.valid(x.version) && semver.satisfies(x.version, range)
         })
         .sort((a: Result, b: Result) => {
-          if (a.version === '*' || !semver.valid(b.version)) {
-            return 1
+          if (a.version === '*') {
+            return -1
           }
 
-          if (b.version === '*' || !semver.valid(a.version)) {
-            return -1
+          if (b.version === '*') {
+            return 1
           }
 
           return semver.rcompare(a.version, b.version)

@@ -17,6 +17,7 @@
     "src/migrations/20160109201227-clear-old-kue-job.ts",
     "src/migrations/20160210235046-new-sources.ts",
     "src/migrations/20160212010712-track-update-time.ts",
-    "src/migrations/20160212043406-add-updated-entries.ts"
+    "src/migrations/20160212043406-add-updated-entries.ts",
+    "src/migrations/20160215041746-sort-dt-wildcard-version.ts"
   ]
 }
