@@ -34,7 +34,7 @@ function getVersions (source: string, name: string, version: string = '*') {
   const range = semver.validRange(version)
 
   if (!range) {
-    return Promise.reject(new TypeError(`Invalid Range: ${version}`))
+    return Promise.reject(new TypeError(`Invalid Semver Range: ${version}`))
   }
 
   interface Result {
@@ -42,6 +42,7 @@ function getVersions (source: string, name: string, version: string = '*') {
     description: string
     compiler: string
     location: string
+    updated: Date
   }
 
   return db('versions')
@@ -49,26 +50,18 @@ function getVersions (source: string, name: string, version: string = '*') {
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .andWhere('entries.source', '=', source)
-    .then(results => {
-      // Sort results by semver descending.
+    .orderBy('updated', 'desc')
+    .then((results: Result[]) => {
       return results
-        .filter((x: Result) => {
-          if (x.version === '*' || range === '*') {
-            return true
+        .filter((x) => semver.satisfies(x.version, range))
+        .sort((a, b) => {
+          const result = semver.rcompare(a.version, b.version)
+
+          if (result === 0) {
+            return b.updated.getTime() - a.updated.getTime()
           }
 
-          return semver.valid(x.version) && semver.satisfies(x.version, range)
-        })
-        .sort((a: Result, b: Result) => {
-          if (a.version === '*') {
-            return -1
-          }
-
-          if (b.version === '*') {
-            return 1
-          }
-
-          return semver.rcompare(a.version, b.version)
+          return result
         })
     })
 }
