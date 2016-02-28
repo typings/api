@@ -2,14 +2,11 @@
   "ambientDependencies": {
     "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
     "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
-    "glob": "github:DefinitelyTyped/DefinitelyTyped/glob/glob.d.ts#a14d724826174d1669d4df04c80f4838b7e71fdf",
     "knex": "github:DefinitelyTyped/DefinitelyTyped/knex/knex.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
     "kue": "github:DefinitelyTyped/DefinitelyTyped/kue/kue.d.ts#4340cbf5c38ccd2d6a751e1c17dff70d8e403406",
     "mime": "github:DefinitelyTyped/DefinitelyTyped/mime/mime.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
-    "minimatch": "github:DefinitelyTyped/DefinitelyTyped/minimatch/minimatch.d.ts#a3900b896f7b3361b79f9b503224777619907d53",
     "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#8cf8164641be73e8f1e652c2a5b967c7210b6729",
     "redis": "github:DefinitelyTyped/DefinitelyTyped/redis/redis.d.ts#4340cbf5c38ccd2d6a751e1c17dff70d8e403406",
-    "semver": "github:DefinitelyTyped/DefinitelyTyped/semver/semver.d.ts#0008781fb2a165a68d10b7f579330dcb4f6a1cb6",
     "serve-static": "github:DefinitelyTyped/DefinitelyTyped/serve-static/serve-static.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6"
   },
   "devDependencies": {
@@ -18,14 +15,16 @@
   "dependencies": {
     "any-promise": "github:typings/typed-any-promise#74ba6cf22149ff4de39c2338a9cb84f9ded6f042",
     "arrify": "github:typings/typed-arrify#32383d5fd3e6a8614abb6dba254a3aab07cd7424",
-    "basic-auth-connect": "file:custom_typings/basic-auth-connect.d.ts",
-    "batch": "file:custom_typings/batch.d.ts",
+    "basic-auth-connect": "github:typed-typings/npm-basic-auth-connect#42bcc7273c013e68d9b01985001ca417da031457",
     "debug": "github:typings/typed-debug#0a12b05a76400107c70a266dcd4c2b656baa7dae",
     "es6-promise": "github:typings/typed-es6-promise#94aac67ef7a14a8de8e9e1d3c1f9a26caa0d9fb1",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
+    "minimatch": "github:typed-typings/npm-minimatch#74f47de8acb42d668491987fc6bc144e7d9aa891",
     "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",
+    "pad-left": "github:typed-typings/npm-pad-left#c457a581be16591c41280e8a42874a6b475bfe1e",
     "promise-finally": "npm:promise-finally",
-    "split": "file:custom_typings/split.d.ts",
+    "semver": "github:typed-typings/npm-semver#e98b40dcb906211d06ea8272570719777cece453",
+    "split": "github:typed-typings/npm-split#900a8ae7efe14cc2196b2a60e9ef2aad85c6f1c2",
     "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663",
     "unthenify": "npm:unthenify"
   }

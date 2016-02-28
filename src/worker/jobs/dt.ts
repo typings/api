@@ -1,13 +1,13 @@
 import kue = require('kue')
-import { basename } from 'path'
 import thenify = require('thenify')
 import Promise = require('any-promise')
+import semver = require('semver')
 import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
 import db from '../../support/knex'
 
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { upsert } from './support/db'
+import { createEntryAndVersion } from './support/db'
 
 import {
   JOB_INDEX_DT_COMMIT,
@@ -23,7 +23,7 @@ const DT_CONTENT_VERSION_REGEXP = new RegExp(`Type definitions for .* v?(${VERSI
 const DT_CONTENT_PROJECT_REGEXP = /^\/\/ *Project: *([^\s]+)/im
 const DT_FILE_VERSION_REGEXP = new RegExp(`-${VERSION_REGEXP_STRING}$`)
 
-const definitionPaths = new Minimatch('*/*.d.ts')
+const definitionPaths = new Minimatch('**/*.d.ts')
 
 /**
  * Job queue processing DefinitelyTyped repo data.
@@ -87,44 +87,32 @@ export function indexDtCommit (job: kue.Job) {
 export function indexDtFileChange (job: kue.Job): Promise<any> {
   const source = 'dt'
   const { change, commit } = job.data
-  const [type, path] = change
+  const [ type, path ] = change
 
-  // Ignore DT deletions.
   if (type === 'D') {
     return getDate(REPO_DT_PATH, commit)
-      .then(commitDate => {
-        const updated = commitDate.toUTCString()
-
-        return db.transaction(trx => {
-          return db('versions')
-            .transacting(trx)
-            .del()
-            .where('location', 'LIKE', getLocation(path, '%'))
-            .andWhere('updated', '<', updated)
-            .returning('entry_id')
-            .then(rows => {
-              return Promise.all(rows.map((entryId: string) => {
-                return db('entries')
-                  .transacting(trx)
-                  .update({ active: false, updated })
-                  .where('id', entryId)
-                  .whereNotExists(function () {
-                    this.select().from('versions').where('entry_id', entryId)
-                  })
-              }))
-            })
-            .then(trx.commit, trx.rollback)
-        })
+      .then(updated => {
+        return db('versions')
+          .del()
+          .where('location', 'LIKE', getLocation(path, '%'))
+          .andWhere('updated', '<', updated)
     })
   }
 
-  const filename = basename(path, '.d.ts')
-  const name = filename.replace(DT_FILE_VERSION_REGEXP, '')
-  let version: string
+  const parts = path.toLowerCase().replace(/\.d\.ts$/, '').split('/')
+  const filename = parts.pop()
+  let name = filename.replace(DT_FILE_VERSION_REGEXP, '')
+  let version: string = '0.0.0'
   let homepage: string
 
+  // Extract the version from the filename.
   if (name !== filename) {
-    version = normalizeVersion(filename.substr(name.length + 1))
+    version = normalizeVersion(filename.substr(name.length + 1)) || version
+  }
+
+  // Normalize non-project `.d.ts` files.
+  if (parts.length > 2 || !isNameSimilar(name, parts[0])) {
+    name = `${parts.join('/')}/${name}`
   }
 
   return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
@@ -133,9 +121,9 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
       const contentVersion = DT_CONTENT_VERSION_REGEXP.exec(contents)
       const contentHomepage = DT_CONTENT_PROJECT_REGEXP.exec(contents)
 
-      // Update the known version.
+      // Update the known project version.
       if (contentVersion) {
-        version = normalizeVersion(contentVersion[1])
+        version = normalizeVersion(contentVersion[1]) || version
       }
 
       if (contentHomepage) {
@@ -143,53 +131,16 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
       }
 
       return getDate(REPO_DT_PATH, commit)
-        .then(commitDate => {
-          const updated = commitDate.toUTCString()
-
-          return upsert({
-            table: 'entries',
-            insert: {
-              name,
-              source,
-              homepage,
-              updated,
-              active: true
-            },
-            updates: ['homepage', 'updated', 'active'],
-            conflicts: ['name', 'source'],
-            returning: 'id',
-            where: 'entries.updated < excluded.updated'
+        .then(updated => {
+          return createEntryAndVersion({
+            name,
+            updated,
+            source,
+            homepage,
+            version,
+            compiler: undefined,
+            location: getLocation(path, commit)
           })
-            .then((id: string) => {
-              // No update occured.
-              if (id == null) {
-                return
-              }
-
-              return upsert({
-                table: 'versions',
-                insert: {
-                  entry_id: id,
-                  version: version || '*',
-                  compiler: '*',
-                  location: getLocation(path, commit),
-                  updated
-                },
-                updates: ['location', 'updated'],
-                conflicts: ['entry_id', 'version', 'compiler'],
-                where: 'versions.updated < excluded.updated'
-              })
-                .then((versionId: string) => {
-                  if (!version || !versionId) {
-                    return
-                  }
-
-                  return db('versions')
-                    .del()
-                    .where({ entry_id: id, version: '*' })
-                    .where('updated', '<', updated)
-                })
-            })
         })
     })
 }
@@ -199,14 +150,14 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
  */
 function normalizeVersion (version: string) {
   // Correct `4.x` notation.
-  version = version.replace(/\.x/, '.0')
+  version = version.replace(/\.x(?=$|\.)/g, '.0')
 
   // Make it semver complete by appending `.0` when only two digits long.
   if (/^\d+\.\d+$/.test(version)) {
     version += '.0'
   }
 
-  return version
+  return semver.valid(version)
 }
 
 /**
@@ -214,4 +165,18 @@ function normalizeVersion (version: string) {
  */
 function getLocation (path: string, commit: string) {
   return `github:DefinitelyTyped/DefinitelyTyped/${path.replace(/\\/g, '/')}#${commit}`
+}
+
+/**
+ * Natively check if two possible names look similar by stripping off extra chars.
+ */
+function isNameSimilar (a: string, b?: string) {
+  return typeof b === 'string' && sanitizeName(a) === sanitizeName(b)
+}
+
+/**
+ * Strip extra name characters for comparison.
+ */
+function sanitizeName (name: string) {
+  return name.replace(/[-\.]|js$/g, '')
 }

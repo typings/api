@@ -37,11 +37,6 @@ export function down () {
     table.dropColumn('updated')
   })
     .then(() => {
-      return db.schema.table('entries', table => {
-        table.dropColumn('updated')
-      })
-    })
-    .then(() => {
       return db.raw('ALTER TABLE versions DROP CONSTRAINT versions_entry_id_version_compiler_unique')
     })
     .then(() => {

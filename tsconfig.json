@@ -18,6 +18,7 @@
     "src/migrations/20160210235046-new-sources.ts",
     "src/migrations/20160212010712-track-update-time.ts",
     "src/migrations/20160212043406-add-updated-entries.ts",
-    "src/migrations/20160215041746-sort-dt-wildcard-version.ts"
+    "src/migrations/20160215041746-sort-dt-wildcard-version.ts",
+    "src/migrations/20160227002611-rebuild-versions.ts"
   ]
 }

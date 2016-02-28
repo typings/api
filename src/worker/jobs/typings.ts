@@ -1,12 +1,9 @@
 import kue = require('kue')
-import { sep } from 'path'
 import thenify = require('thenify')
 import { Minimatch } from 'minimatch'
-import arrify = require('arrify')
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { upsert } from './support/db'
+import { createEntry, createVersion, VersionOptions, deleteVersions } from './support/db'
 import queue from '../../support/kue'
-import db from '../../support/knex'
 
 import {
   REPO_TYPINGS_PATH,
@@ -73,42 +70,17 @@ export function indexTypingsCommit (job: kue.Job) {
 
 export function indexTypingsFileChange (job: kue.Job) {
   const { change, commit } = job.data
-  const [type, path] = change
+  const [ type, path ] = change
 
   // Build up parts since npm registry has scopes (E.g. `@foo/bar`).
-  const parts = path.split(sep)
+  const parts: string[] = path.replace(/\.json$/, '').split('/')
   const source = parts.shift()
-  const name = parts.join('/').replace(/\.json$/, '')
+  const name = parts.join('/')
 
   if (type === 'D') {
     return getDate(REPO_TYPINGS_PATH, commit)
-      .then(commitDate => {
-        const updated = commitDate.toUTCString()
-
-        return db.transaction(trx => {
-          return db('entries')
-            .transacting(trx)
-            .select('id')
-            .where({ name, source })
-            .then((rows) => {
-              return Promise.all(rows.map(({ id }) => {
-                return db('versions')
-                  .transacting(trx)
-                  .del()
-                  .where('entry_id', '=', id)
-                  .andWhere('updated', '<', updated)
-                  .then(() => {
-                    return db('entries')
-                      .transacting(trx)
-                      .update({ active: false, updated })
-                      .where('id', '=', id)
-                      .andWhere('updated', '<', updated)
-                  })
-              }))
-            })
-            .then(trx.commit)
-            .catch(trx.rollback)
-        })
+      .then(updated => {
+        return deleteVersions({ name, source, updated })
       })
   }
 
@@ -124,71 +96,42 @@ export function indexTypingsFileChange (job: kue.Job) {
       }
 
       return getDate(REPO_TYPINGS_PATH, commit)
-        .then(commitDate => {
-          const updated = commitDate.toUTCString()
-
-          return upsert({
-            table: 'entries',
-            insert: {
-              name,
-              source,
-              homepage,
-              updated,
-              active: true
-            },
-            updates: ['homepage', 'updated', 'active'],
-            conflicts: ['name', 'source'],
-            returning: 'id',
-            where: 'entries.updated < excluded.updated'
+        .then(updated => {
+          return createEntry({
+            name,
+            homepage,
+            source,
+            updated
           })
-            .then((id: string) => {
-              // No update needs to occur.
-              if (id == null) {
+            .then((entryId) => {
+              // Skip already updated entries.
+              if (entryId == null) {
                 return
               }
 
-              const inserts: any[] = []
+              const data: VersionOptions[] = Object.keys(versions).map((version) => {
+                const value = versions[version]
 
-              for (const version of Object.keys(versions)) {
-                const data: any = versions[version]
-
-                for (const value of arrify(data)) {
-                  const info: any = { entry_id: id, version, updated }
-
-                  if (typeof value === 'string') {
-                    info.location = value
-                    info.compiler = '*'
-                  } else {
-                    info.compiler = value.compiler || '*'
-                    info.location = value.location
-                    info.description = value.description
+                if (typeof value === 'string') {
+                  return {
+                    version,
+                    entryId,
+                    location: value,
+                    updated
                   }
-
-                  inserts.push(info)
                 }
-              }
 
-              return db.transaction(trx => {
-                return Promise.all(inserts.map(insert => {
-                  return upsert({
-                    table: 'versions',
-                    insert,
-                    updates: ['location', 'description', 'updated'],
-                    conflicts: ['entry_id', 'version', 'compiler'],
-                    trx,
-                    where: 'versions.updated < excluded.updated'
-                  })
-                }))
-                  .then(() => {
-                    return db('versions')
-                      .transacting(trx)
-                      .del()
-                      .where('entry_id', id)
-                      .where('updated', '<', updated)
-                      .whereNotIn('location', inserts.map(x => x.location))
-                  })
-                  .then(trx.commit, trx.rollback)
+                return {
+                  version,
+                  entryId,
+                  compiler: value.compiler,
+                  location: value.location,
+                  description: value.description,
+                  updated
+                }
               })
+
+              return Promise.all(data.map(data => createVersion(data)))
             })
         })
     })
