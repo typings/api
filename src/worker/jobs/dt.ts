@@ -17,7 +17,7 @@ import {
   JOB_INDEX_DT_FILE_CHANGE
 } from '../../support/constants'
 
-const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
+const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+\\+?|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
 
 const DT_CONTENT_VERSION_REGEXP = new RegExp(`Type definitions for .* v?(${VERSION_REGEXP_STRING})$`, 'im')
 const DT_CONTENT_PROJECT_REGEXP = /^\/\/ *Project: *([^\s]+)/im
@@ -99,20 +99,15 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
     })
   }
 
-  const parts = path.toLowerCase().replace(/\.d\.ts$/, '').split('/')
-  const filename = parts.pop()
-  let name = filename.replace(DT_FILE_VERSION_REGEXP, '')
+  const fullpath = path.toLowerCase().replace(/\.d\.ts$/, '')
+  const fullname = fullpath.replace(DT_FILE_VERSION_REGEXP, '')
+  const name = normalizeName(fullname)
   let version: string = '0.0.0'
   let homepage: string
 
   // Extract the version from the filename.
-  if (name !== filename) {
-    version = normalizeVersion(filename.substr(name.length + 1)) || version
-  }
-
-  // Normalize non-project `.d.ts` files.
-  if (parts.length > 2 || !isNameSimilar(name, parts[0])) {
-    name = `${parts.join('/')}/${name}`
+  if (fullpath !== fullname) {
+    version = normalizeVersion(fullpath.substr(fullname.length + 1)) || version
   }
 
   return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
@@ -152,6 +147,9 @@ function normalizeVersion (version: string) {
   // Correct `4.x` notation.
   version = version.replace(/\.x(?=$|\.)/g, '.0')
 
+  // Correct `1.4+` notation.
+  version = version.replace(/\+$/, '.0')
+
   // Make it semver complete by appending `.0` when only two digits long.
   if (/^\d+\.\d+$/.test(version)) {
     version += '.0'
@@ -160,18 +158,38 @@ function normalizeVersion (version: string) {
   return semver.valid(version)
 }
 
+function normalizeName (name: string): string {
+  const parts = name.split('/')
+
+  if (parts.length === 1) {
+    return parts[0]
+  }
+
+  if (parts.length === 2) {
+    const dir = sanitizeName(parts[0])
+    const file = sanitizeName(parts[1])
+
+    // "google.maps/google-maps.d.ts"
+    if (dir === file) {
+      return parts[1]
+    }
+
+    // "react/react-dom.d.ts"
+    if (parts[1].substr(0, dir.length) === dir) {
+      return parts[1]
+    }
+
+    return name
+  }
+
+  return name
+}
+
 /**
  * Get the Typings location for DefinitelyTyped typings.
  */
 function getLocation (path: string, commit: string) {
   return `github:DefinitelyTyped/DefinitelyTyped/${path.replace(/\\/g, '/')}#${commit}`
-}
-
-/**
- * Natively check if two possible names look similar by stripping off extra chars.
- */
-function isNameSimilar (a: string, b?: string) {
-  return typeof b === 'string' && sanitizeName(a) === sanitizeName(b)
 }
 
 /**

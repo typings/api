@@ -38,6 +38,7 @@ function getVersions (source: string, name: string, version: string = '*') {
   }
 
   interface Result {
+    tag: string
     version: string
     description: string
     compiler: string
@@ -46,16 +47,16 @@ function getVersions (source: string, name: string, version: string = '*') {
   }
 
   return db('versions')
-    .select(['versions.version', 'versions.description', 'versions.compiler', 'versions.location', 'versions.updated'])
+    .select(['versions.tag', 'versions.version', 'versions.description', 'versions.compiler', 'versions.location', 'versions.updated'])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .andWhere('entries.source', '=', source)
     .orderBy('updated', 'desc')
     .then((results: Result[]) => {
       return results
-        .filter((x) => semver.satisfies(x.version, range))
+        .filter((x) => semver.satisfies(x.tag, range))
         .sort((a, b) => {
-          const result = semver.rcompare(a.version, b.version)
+          const result = semver.rcompare(a.tag, b.tag)
 
           if (result === 0) {
             return b.updated.getTime() - a.updated.getTime()

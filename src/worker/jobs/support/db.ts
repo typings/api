@@ -85,23 +85,24 @@ function getTimestamp (date: Date): string {
 
 export function createVersion (options: VersionOptions): Promise<string> {
   const { entryId, version, compiler, location, updated } = options
-  const versioned = `${version}+${getTimestamp(updated)}` + (compiler ? `-${compiler}` : '')
+  const tag = `${version}+${getTimestamp(updated)}` + (compiler ? `-${compiler}` : '')
 
-  if (!semver.valid(versioned)) {
-    return Promise.reject<string>(new Error(`Invalid semver: ${versioned}`))
+  if (!semver.valid(tag)) {
+    return Promise.reject<string>(new Error(`Invalid tag: ${tag}`))
   }
 
   return upsert({
     table: 'versions',
     insert: {
       entry_id: entryId,
-      version: versioned,
+      tag,
+      version,
       compiler,
       location,
       updated
     },
-    updates: ['location', 'updated'],
-    conflicts: ['entry_id', 'version'],
+    updates: ['version', 'location', 'updated', 'compiler'],
+    conflicts: ['entry_id', 'tag'],
     returning: 'id',
     where: 'versions.updated < excluded.updated'
   })
