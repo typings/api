@@ -70,7 +70,7 @@ export function createEntry (options: EntryOptions): Promise<string> {
     updates: ['homepage', 'updated'],
     conflicts: ['name', 'source'],
     returning: 'id',
-    where: 'entries.updated < excluded.updated'
+    where: 'entries.updated <= excluded.updated'
   })
 }
 
@@ -104,7 +104,7 @@ export function createVersion (options: VersionOptions): Promise<string> {
     updates: ['version', 'location', 'updated', 'compiler'],
     conflicts: ['entry_id', 'tag'],
     returning: 'id',
-    where: 'versions.updated < excluded.updated'
+    where: 'versions.updated <= excluded.updated'
   })
 }
 
