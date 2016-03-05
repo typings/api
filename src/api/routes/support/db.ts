@@ -15,7 +15,7 @@ export function getEntry (source: string, name: string) {
     .groupBy('entries.id')
     .then(entries => {
       if (entries.length === 0) {
-        return Promise.reject(createError(404, `No entry found for ${source}!${name} in registry`))
+        return Promise.reject(createError(404, `No entry found for "${source}!${name}" in registry`))
       }
 
       // Patch versions to a number.
@@ -34,7 +34,7 @@ export function getTag (source: string, name: string, tag: string) {
     .where('versions.tag', '=', tag)
     .then(tags => {
       if (tags.length === 0) {
-        return Promise.reject(createError(404, `No entry found for ${source}!${name} in registry`))
+        return Promise.reject(createError(404, `No entry found for "${source}!${name}" in registry`))
       }
 
       return tags[0]
@@ -78,6 +78,17 @@ export function getVersions (source: string, name: string, version: string = '*'
 
           return result
         })
+    })
+}
+
+export function getLatest (source: string, name: string, version: string) {
+  return getVersions(source, name, version)
+    .then(versions => {
+      if (versions.length === 0) {
+        return Promise.reject(createError(404, `No version for "${source}!${name}@${version}" in registry`))
+      }
+
+      return versions[0]
     })
 }
 

@@ -1,5 +1,5 @@
 import express = require('express')
-import { getVersions, getTag, getEntry } from './support/db'
+import { getVersions, getLatest, getTag, getEntry } from './support/db'
 
 const router = express.Router()
 
@@ -18,6 +18,17 @@ router.get('/:source/:name/versions/:version?', function (req, res, next) {
     .then(versions => {
       return res.json({ versions, total: versions.length })
     })
+    .catch(next as any)
+})
+
+router.get('/:source/:name/versions/:version/latest', function (req, res, next) {
+  const { params } = req
+
+  return getLatest(params.source, params.name, params.version)
+    .then(version => {
+      return res.json(version)
+    })
+    .catch(next as any)
 })
 
 router.get('/:source/:name/tags/:tag', function (req, res, next) {

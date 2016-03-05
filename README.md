@@ -32,6 +32,10 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 
 * **version** A semantic version query (default: `*`)
 
+##### /latest
+
+> Get the latest version matching the semver range.
+
 ### /tags/:tag
 
 > Select a particular tag from the registry.
