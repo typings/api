@@ -18,6 +18,7 @@
     "basic-auth-connect": "github:typed-typings/npm-basic-auth-connect#42bcc7273c013e68d9b01985001ca417da031457",
     "debug": "github:typings/typed-debug#0a12b05a76400107c70a266dcd4c2b656baa7dae",
     "es6-promise": "github:typings/typed-es6-promise#94aac67ef7a14a8de8e9e1d3c1f9a26caa0d9fb1",
+    "http-errors": "file:custom_typings/http-errors.d.ts",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
     "minimatch": "github:typed-typings/npm-minimatch#74f47de8acb42d668491987fc6bc144e7d9aa891",
     "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",

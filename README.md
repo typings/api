@@ -8,7 +8,7 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 
 ### /search
 
-Search known TypeScript definitions.
+> Search known TypeScript definitions.
 
 #### Query Parameters
 
@@ -19,15 +19,24 @@ Search known TypeScript definitions.
 * **limit** The maximum number of items to return (max: `50`)
 * **ambient** Search ambient module sources (default: `null`, boolean)
 
-### /versions/:source/:name/:version?
+### /entries/:source/:name
 
-Print version details from the registry.
-
-#### URI Parameters
+> Print version details from the registry.
 
 * **source** The source to use (from `/search`)
 * **name** The name of the project (from `/search`)
+
+#### /versions/:range?
+
+> Find all versions, or versions matching a range.
+
 * **version** A semantic version query (default: `*`)
+
+### /tags/:tag
+
+> Select a particular tag from the registry.
+
+* **tag** The semver tag for the version
 
 ## Development
 
