@@ -10,4 +10,8 @@ router.use('/search', search)
 router.use('/versions', versions)
 router.use('/entries', entries)
 
+router.get('/health', function (req, res) {
+  res.status(200).end()
+})
+
 export default router
