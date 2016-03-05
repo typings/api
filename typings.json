@@ -1,7 +1,7 @@
 {
   "ambientDependencies": {
     "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
-    "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
+    "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#dd638012d63e069f2c99d06ef4dcc9616a943ee4",
     "knex": "github:DefinitelyTyped/DefinitelyTyped/knex/knex.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
     "kue": "github:DefinitelyTyped/DefinitelyTyped/kue/kue.d.ts#4340cbf5c38ccd2d6a751e1c17dff70d8e403406",
     "mime": "github:DefinitelyTyped/DefinitelyTyped/mime/mime.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
@@ -18,15 +18,17 @@
     "basic-auth-connect": "github:typed-typings/npm-basic-auth-connect#42bcc7273c013e68d9b01985001ca417da031457",
     "debug": "github:typings/typed-debug#0a12b05a76400107c70a266dcd4c2b656baa7dae",
     "es6-promise": "github:typings/typed-es6-promise#94aac67ef7a14a8de8e9e1d3c1f9a26caa0d9fb1",
-    "http-errors": "file:custom_typings/http-errors.d.ts",
+    "http-errors": "github:typed-typings/npm-http-errors#6fa04b5f2cc2560f4547820f5d138dbb5789345d",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
     "minimatch": "github:typed-typings/npm-minimatch#74f47de8acb42d668491987fc6bc144e7d9aa891",
     "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",
+    "node-uuid": "github:rapropos/typed-node-uuid#a2ad36f2802416729eaad89559d76e0b03ba673c",
     "pad-left": "github:typed-typings/npm-pad-left#c457a581be16591c41280e8a42874a6b475bfe1e",
     "promise-finally": "npm:promise-finally",
     "semver": "github:typed-typings/npm-semver#e98b40dcb906211d06ea8272570719777cece453",
     "split": "github:typed-typings/npm-split#900a8ae7efe14cc2196b2a60e9ef2aad85c6f1c2",
     "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663",
+    "universal-analytics": "github:typed-typings/npm-universal-analytics#076ce0feb05dae49f0a06efd0087b24bf90d2595",
     "unthenify": "npm:unthenify"
   }
 }

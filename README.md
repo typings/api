@@ -64,6 +64,8 @@ export QUEUE_UI_PASSWORD="admin"
 
 export NEW_RELIC_ENABLED=false
 export NEW_RELIC_NO_CONFIG_FILE=true
+
+export UA_ID=""
 ```
 
 ## License
