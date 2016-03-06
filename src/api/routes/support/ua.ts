@@ -2,7 +2,6 @@ import uuid = require('node-uuid')
 import express = require('express')
 import ua = require('universal-analytics')
 
-const url = 'https://api.typings.org'
 const analyticsId = process.env.UA_ID
 
 export function track (title: string): express.RequestHandler {
@@ -16,8 +15,9 @@ export function track (title: string): express.RequestHandler {
     const data = {
       dp: req.originalUrl,
       dt: title,
-      dh: url,
+      dh: req.host,
       uip: req.ip,
+      dr: req.headers['referer'] || req.headers['referrer'],
       ua: req.headers['user-agent']
     }
 
