@@ -1,9 +1,10 @@
 import express = require('express')
+import { track } from './support/ua'
 import { getVersions, getLatest, getTag, getEntry } from './support/db'
 
 const router = express.Router()
 
-router.get('/:source/:name', function (req, res, next) {
+router.get('/:source/:name', track('Entry'), function (req, res, next) {
   const { params } = req
 
   return getEntry(params.source, params.name)
@@ -11,7 +12,7 @@ router.get('/:source/:name', function (req, res, next) {
     .catch(next as any)
 })
 
-router.get('/:source/:name/versions/:version?', function (req, res, next) {
+router.get('/:source/:name/versions/:version?', track('Entry Versions'), function (req, res, next) {
   const { params } = req
 
   return getVersions(params.source, params.name, params.version)
@@ -21,7 +22,7 @@ router.get('/:source/:name/versions/:version?', function (req, res, next) {
     .catch(next as any)
 })
 
-router.get('/:source/:name/versions/:version/latest', function (req, res, next) {
+router.get('/:source/:name/versions/:version/latest', track('Latest Entry Version'), function (req, res, next) {
   const { params } = req
 
   return getLatest(params.source, params.name, params.version)
@@ -31,7 +32,7 @@ router.get('/:source/:name/versions/:version/latest', function (req, res, next) 
     .catch(next as any)
 })
 
-router.get('/:source/:name/tags/:tag', function (req, res, next) {
+router.get('/:source/:name/tags/:tag', track('Entry Tag'), function (req, res, next) {
   const { params } = req
 
   return getTag(params.source, params.name, params.tag)

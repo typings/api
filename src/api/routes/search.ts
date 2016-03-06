@@ -1,9 +1,10 @@
 import express = require('express')
 import { search } from './support/db'
+import { track } from './support/ua'
 
 const router = express.Router()
 
-router.get('/', function (req, res, next) {
+router.get('/', track('Search'), function (req, res, next) {
   const { query } = req
 
   return search(query)

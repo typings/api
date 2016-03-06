@@ -18,7 +18,6 @@ import kue = require('kue')
 import express = require('express')
 import basicAuth = require('basic-auth-connect')
 import ua = require('universal-analytics')
-import uuid = require('node-uuid')
 import routes from './routes'
 
 // Create a Kue client before mounting UI.
@@ -30,24 +29,11 @@ const analyticsId = process.env.UA_ID
 
 app.use('/queue', basicAuth(queueUsername, queuePassword), kue.app)
 
-if (analyticsId) {
-  app.use(function (req, res, next) {
-    const id = req.headers['typings-client-id'] || uuid.v1()
-    const visitor = ua(analyticsId, id, { https: true })
-
-    res.setHeader('Typings-Client-Id', id)
-
-    visitor.pageview(req.url).send()
-
-    return next()
-  })
-}
-
 app.use(routes)
 
 if (analyticsId) {
   app.use(function (err: Error, req: express.Request, res: express.Response, next: (err: any) => any) {
-    // Log middleware errors (most likely not found errors).
+    // Log middleware errors (most likely "not found" errors).
     ua(analyticsId).exception(err.message).send()
 
     return next(err)
