@@ -4,6 +4,7 @@ import ua = require('universal-analytics')
 
 const analyticsId = process.env.UA_ID
 
+// Reference: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
 export function track (title: string): express.RequestHandler {
   if (!analyticsId) {
     return function (req, res, next) {
@@ -15,7 +16,7 @@ export function track (title: string): express.RequestHandler {
     const data = {
       dp: req.originalUrl,
       dt: title,
-      dh: req.host,
+      dh: req.hostname,
       uip: req.ip,
       dr: req.headers['referer'] || req.headers['referrer'],
       ua: req.headers['user-agent']
