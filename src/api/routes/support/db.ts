@@ -67,7 +67,7 @@ export function getVersions (source: string, name: string, version: string = '*'
     .andWhere('entries.source', '=', source)
     .orderBy('updated', 'desc')
     .then((results: Version[]) => {
-      if (results.length) {
+      if (results.length === 0) {
         return Promise.reject(createError(404, `No versions found for "${source}!${name}@${version}" in registry`))
       }
 
