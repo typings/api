@@ -67,6 +67,10 @@ export function getVersions (source: string, name: string, version: string = '*'
     .andWhere('entries.source', '=', source)
     .orderBy('updated', 'desc')
     .then((results: Version[]) => {
+      if (results.length) {
+        return Promise.reject(createError(404, `No versions found for "${source}!${name}@${version}" in registry`))
+      }
+
       return results
         .filter((x) => semver.satisfies(x.tag, range))
         .sort((a, b) => {

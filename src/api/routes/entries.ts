@@ -16,9 +16,7 @@ router.get('/:source/:name/versions/:version?', track('Entry Versions'), functio
   const { params } = req
 
   return getVersions(params.source, params.name, params.version)
-    .then(versions => {
-      return res.json({ versions, total: versions.length })
-    })
+    .then(versions => res.json(versions))
     .catch(next as any)
 })
 
@@ -26,9 +24,7 @@ router.get('/:source/:name/versions/:version/latest', track('Latest Entry Versio
   const { params } = req
 
   return getLatest(params.source, params.name, params.version)
-    .then(version => {
-      return res.json(version)
-    })
+    .then(version => res.json(version))
     .catch(next as any)
 })
 
