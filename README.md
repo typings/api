@@ -44,12 +44,17 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 
 ## Development
 
-Requires Redis and Postgres.
+Requires Redis and Postgres. Run all migration scripts to get started.
 
 ```sh
+# Clone and install dependencies.
 git clone
 npm install
 
+# Run all migration scripts.
+npm run migrate -- up -a
+
+# Start the build and watch processes.
 npm run build-watch
 npm run start-watch
 ```
