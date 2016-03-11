@@ -28,7 +28,15 @@ export function getEntry (source: string, name: string) {
 
 export function getTag (source: string, name: string, tag: string) {
   return db('versions')
-    .select('versions.version', 'versions.location', 'versions.description', 'versions.tag', 'versions.compiler', 'versions.updated')
+    .select([
+      'versions.version',
+      'versions.location',
+      'versions.description',
+      'versions.tag',
+      'versions.compiler',
+      'versions.updated',
+      'versions.deprecated'
+    ])
     .join('entries', 'entries.id', 'versions.entry_id')
     .where('entries.source', '=', source)
     .where('entries.name', '=', name)
