@@ -18,7 +18,7 @@ import {
 
 const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+\\+?|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
 
-const DT_CONTENT_VERSION_REGEXP = new RegExp(`Type definitions for.*?v?(${VERSION_REGEXP_STRING})$`, 'im')
+const DT_CONTENT_VERSION_REGEXP = new RegExp(`^\/\/ *Type definitions for.+?v?(${VERSION_REGEXP_STRING})`, 'im')
 const DT_CONTENT_PROJECT_REGEXP = /^\/\/ *Project: *([^\s]+)/im
 const DT_FILE_VERSION_REGEXP = new RegExp(`-${VERSION_REGEXP_STRING}$`)
 

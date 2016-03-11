@@ -104,7 +104,7 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
     },
     updates: ['version', 'location', 'updated', 'compiler', 'deprecated'],
     conflicts: ['entry_id', 'tag'],
-    returning: ['id', 'deprecated'],
+    returning: ['id'],
     where: 'versions.updated <= excluded.updated'
   })
 }
