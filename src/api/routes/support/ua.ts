@@ -8,7 +8,7 @@ const analyticsId = process.env.UA_ID
 export function track (title: string): express.RequestHandler {
   if (!analyticsId) {
     return function (req, res, next) {
-      return next()
+      next()
     }
   }
 
@@ -23,7 +23,7 @@ export function track (title: string): express.RequestHandler {
     }
 
     const id = req.headers['typings-client-id'] || uuid.v1()
-    const visitor = ua(analyticsId, id, { https: true })
+    const visitor = ua(analyticsId, id)
 
     res.setHeader('Typings-Client-Id', id)
 
