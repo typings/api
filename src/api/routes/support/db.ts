@@ -127,7 +127,7 @@ export interface SearchOptions {
 
 export function search (options: SearchOptions) {
   const offset = Math.max(+options.offset || 0, 0)
-  const limit = Math.max(Math.min(+options.limit || 20, 50), 1)
+  const limit = Math.max(Math.min(+options.limit || 20, 100), 1)
   const sort = options.sort || 'name'
   const order = options.order === 'desc' ? 'desc' : 'asc'
 
