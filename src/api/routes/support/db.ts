@@ -11,7 +11,8 @@ export function getEntry (source: string, name: string) {
     .select(['entries.name', 'entries.source', 'entries.homepage', 'entries.description', 'entries.updated'])
     .select(db.raw('COUNT(entries.id) AS versions'))
     .where('entries.source', '=', source)
-    .andWhere('entries.name', '=', name)
+    .where('entries.name', '=', name)
+    .whereNull('versions.deprecated')
     .groupBy('entries.id')
     .then(entries => {
       if (entries.length === 0) {
@@ -48,6 +49,7 @@ export interface Version {
   compiler: string
   location: string
   updated: Date
+  deprecated: Date
 }
 
 /**
@@ -61,7 +63,15 @@ export function getVersions (source: string, name: string, version: string = '*'
   }
 
   return db('versions')
-    .select(['versions.tag', 'versions.version', 'versions.description', 'versions.compiler', 'versions.location', 'versions.updated'])
+    .select([
+      'versions.tag',
+      'versions.version',
+      'versions.description',
+      'versions.compiler',
+      'versions.location',
+      'versions.updated',
+      'versions.deprecated'
+    ])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .andWhere('entries.source', '=', source)
@@ -115,6 +125,7 @@ export function search (options: SearchOptions) {
 
   const dbQuery = db('entries')
     .rightOuterJoin('versions', 'entries.id', 'versions.entry_id')
+    .whereNull('versions.deprecated')
 
   if (options.query) {
     dbQuery.whereRaw('tsv @@ plainto_tsquery(?)', [options.query])

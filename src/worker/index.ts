@@ -31,7 +31,7 @@ Promise.all([
 queue.watchStuckJobs(stuckInterval)
 
 // Parse commits and files and queue changes. One at a time for sequential processing.
-queue.process(JOB_INDEX_DT_COMMIT, 5, unthenify(indexDtCommit))
-queue.process(JOB_INDEX_TYPINGS_COMMIT, 5, unthenify(indexTypingsCommit))
-queue.process(JOB_INDEX_DT_FILE_CHANGE, 10, unthenify(indexDtFileChange))
-queue.process(JOB_INDEX_TYPINGS_FILE_CHANGE, 10, unthenify(indexTypingsFileChange))
+queue.process(JOB_INDEX_DT_COMMIT, 1, unthenify(indexDtCommit))
+queue.process(JOB_INDEX_TYPINGS_COMMIT, 1, unthenify(indexTypingsCommit))
+queue.process(JOB_INDEX_DT_FILE_CHANGE, 2, unthenify(indexDtFileChange))
+queue.process(JOB_INDEX_TYPINGS_FILE_CHANGE, 2, unthenify(indexTypingsFileChange))

@@ -11,10 +11,10 @@ export interface UpsertOptions {
   conflicts: string[]
   trx?: knex.Transaction
   where?: string
-  returning?: string
+  returning?: string[]
 }
 
-export function upsert (options: UpsertOptions): Promise<string> {
+export function upsert (options: UpsertOptions): Promise<Object> {
   const insert = db(options.table)
     .insert(options.insert)
     .transacting(options.trx)
@@ -22,41 +22,41 @@ export function upsert (options: UpsertOptions): Promise<string> {
     ` ON CONFLICT (${options.conflicts.join(', ')}) DO UPDATE SET ` +
     options.updates.map(key => `${key}=excluded.${key}`) +
     (options.where ? ` WHERE ${options.where}` : '') +
-    (options.returning ? ` RETURNING ${options.returning}` : '')
+    (options.returning ? ` RETURNING ${options.returning.join(', ')}` : '')
 
   return db.raw(insert).then(function (response) {
     const { rows } = response
 
-    return rows.length ? rows[0][options.returning] : undefined
+    return rows.length ? rows[0] : undefined
   })
 }
 
 export interface EntryAndVersionOptions {
-  name: string,
-  source: string,
-  homepage?: string,
-  updated: Date,
-  version: string,
-  compiler?: string,
+  name: string
+  source: string
+  homepage?: string
+  updated: Date
+  version: string
+  compiler?: string
   location?: string
 }
 
 export interface VersionOptions {
-  entryId: string,
-  updated: Date,
-  version: string,
-  compiler?: string,
+  entryId: string
+  updated: Date
+  version: string
+  compiler?: string
   location?: string
 }
 
 export interface EntryOptions {
-  name: string,
-  source: string,
-  homepage?: string,
+  name: string
+  source: string
+  homepage?: string
   updated: Date
 }
 
-export function createEntry (options: EntryOptions): Promise<string> {
+export function createEntry (options: EntryOptions): Promise<{ id: string }> {
   const { name, source, homepage, updated } = options
 
   return upsert({
@@ -69,7 +69,7 @@ export function createEntry (options: EntryOptions): Promise<string> {
     },
     updates: ['homepage', 'updated'],
     conflicts: ['name', 'source'],
-    returning: 'id',
+    returning: ['id'],
     where: 'entries.updated <= excluded.updated'
   })
 }
@@ -83,12 +83,12 @@ function getTimestamp (date: Date): string {
     pad(String(date.getUTCSeconds()), 2, '0')
 }
 
-export function createVersion (options: VersionOptions): Promise<string> {
+export function createVersion (options: VersionOptions): Promise<{ id: string }> {
   const { entryId, version, compiler, location, updated } = options
   const tag = `${version}+${getTimestamp(updated)}` + (compiler ? `-${compiler}` : '')
 
   if (!semver.valid(tag)) {
-    return Promise.reject<string>(new Error(`Invalid tag: ${tag}`))
+    return Promise.reject<any>(new TypeError(`Invalid tag: ${tag}`))
   }
 
   return upsert({
@@ -99,31 +99,37 @@ export function createVersion (options: VersionOptions): Promise<string> {
       version,
       compiler,
       location,
-      updated
+      updated,
+      deprecated: null
     },
-    updates: ['version', 'location', 'updated', 'compiler'],
+    updates: ['version', 'location', 'updated', 'compiler', 'deprecated'],
     conflicts: ['entry_id', 'tag'],
-    returning: 'id',
+    returning: ['id', 'deprecated'],
     where: 'versions.updated <= excluded.updated'
   })
 }
 
-export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<string> {
+export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<{ id: string }> {
   const { name, source, updated, version, compiler, location } = options
 
   return createEntry(options)
-    .then((id: string) => {
-      if (id != null) {
-        return id
+    .then((row) => {
+      if (row != null) {
+        return row
       }
 
       return db('entries')
         .first('id')
         .where({ name, source })
-        .then(row => row.id)
     })
-    .then((entryId: string) => {
-      return createVersion({ entryId, updated, version, compiler, location })
+    .then(({ id }) => {
+      return createVersion({
+        entryId: id,
+        updated,
+        version,
+        compiler,
+        location
+      })
     })
 }
 
@@ -148,7 +154,7 @@ export function deleteVersions (options: VersionsOptions) {
 
         return db('versions')
           .transacting(trx)
-          .del()
+          .update({ deprecated: updated })
           .where('entry_id', '=', row.id)
           .andWhere('updated', '<', updated)
           .returning('id')
@@ -156,4 +162,18 @@ export function deleteVersions (options: VersionsOptions) {
       .then(trx.commit)
       .catch(trx.rollback)
   })
+}
+
+interface VersionsLikeOptions {
+  location: string
+  updated: Date
+}
+
+export function deleteVersionsLike (options: VersionsLikeOptions) {
+  const { location, updated } = options
+
+  return db('versions')
+    .update({ deprecated: updated })
+    .where('location', 'LIKE', location)
+    .andWhere('updated', '<', updated)
 }

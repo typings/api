@@ -20,6 +20,7 @@
     "src/migrations/20160212043406-add-updated-entries.ts",
     "src/migrations/20160215041746-sort-dt-wildcard-version.ts",
     "src/migrations/20160227002611-rebuild-versions.ts",
-    "src/migrations/20160303213743-add-tag-fix-unique.ts"
+    "src/migrations/20160303213743-add-tag-fix-unique.ts",
+    "src/migrations/20160310200338-deprecate-typings-not-delete.ts"
   ]
 }

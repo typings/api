@@ -86,7 +86,14 @@ export function indexTypingsFileChange (job: kue.Job) {
 
   return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
     .then(() => getFile(REPO_TYPINGS_PATH, path, commit, 1024 * 400))
-    .then(data => JSON.parse(data))
+    .then(data => {
+      // Handle bad JSON commits.
+      try {
+        return JSON.parse(data)
+      } catch (e) {
+        return {}
+      }
+    })
     .then(entry => {
       const { homepage, versions } = entry
 
@@ -103,9 +110,9 @@ export function indexTypingsFileChange (job: kue.Job) {
             source,
             updated
           })
-            .then((entryId) => {
+            .then((row) => {
               // Skip already updated entries.
-              if (entryId == null) {
+              if (row == null) {
                 return
               }
 
@@ -115,7 +122,7 @@ export function indexTypingsFileChange (job: kue.Job) {
                 if (typeof value === 'string') {
                   return {
                     version,
-                    entryId,
+                    entryId: row.id,
                     location: value,
                     updated
                   }
@@ -123,7 +130,7 @@ export function indexTypingsFileChange (job: kue.Job) {
 
                 return {
                   version,
-                  entryId,
+                  entryId: row.id,
                   compiler: value.compiler,
                   location: value.location,
                   description: value.description,

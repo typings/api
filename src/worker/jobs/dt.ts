@@ -4,10 +4,9 @@ import Promise = require('any-promise')
 import semver = require('semver')
 import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
-import db from '../../support/knex'
 
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { createEntryAndVersion } from './support/db'
+import { createEntryAndVersion, deleteVersionsLike } from './support/db'
 
 import {
   JOB_INDEX_DT_COMMIT,
@@ -19,7 +18,7 @@ import {
 
 const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+\\+?|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
 
-const DT_CONTENT_VERSION_REGEXP = new RegExp(`Type definitions for .* v?(${VERSION_REGEXP_STRING})$`, 'im')
+const DT_CONTENT_VERSION_REGEXP = new RegExp(`Type definitions for.*?v?(${VERSION_REGEXP_STRING})$`, 'im')
 const DT_CONTENT_PROJECT_REGEXP = /^\/\/ *Project: *([^\s]+)/im
 const DT_FILE_VERSION_REGEXP = new RegExp(`-${VERSION_REGEXP_STRING}$`)
 
@@ -92,11 +91,11 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
   if (type === 'D') {
     return getDate(REPO_DT_PATH, commit)
       .then(updated => {
-        return db('versions')
-          .del()
-          .where('location', 'LIKE', getLocation(path, '%'))
-          .andWhere('updated', '<', updated)
-    })
+        return deleteVersionsLike({
+          updated,
+          location: getLocation(path, '%')
+        })
+      })
   }
 
   const fullpath = path.toLowerCase().replace(/\.d\.ts$/, '')
@@ -189,7 +188,7 @@ function normalizeName (name: string): string {
  * Get the Typings location for DefinitelyTyped typings.
  */
 function getLocation (path: string, commit: string) {
-  return `github:DefinitelyTyped/DefinitelyTyped/${path.replace(/\\/g, '/')}#${commit}`
+  return `github:DefinitelyTyped/DefinitelyTyped/${path}#${commit}`
 }
 
 /**
