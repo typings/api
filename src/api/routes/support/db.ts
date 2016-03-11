@@ -82,7 +82,8 @@ export function getVersions (source: string, name: string, version: string = '*'
     ])
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
-    .andWhere('entries.source', '=', source)
+    .where('entries.source', '=', source)
+    .whereNull('versions.deprecated')
     .orderBy('updated', 'desc')
     .then((results: Version[]) => {
       if (results.length === 0) {

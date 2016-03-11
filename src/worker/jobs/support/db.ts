@@ -107,6 +107,18 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
     returning: ['id'],
     where: 'versions.updated <= excluded.updated'
   })
+    .then((row: any) => {
+      if (row) {
+        // Deprecate old, duplicate locations.
+        return db('versions')
+          .update({ deprecated: updated })
+          .where('id', '!=', row.id)
+          .where('location', '=', location)
+          .where('updated', '<=', updated)
+      }
+
+      return row
+    })
 }
 
 export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<{ id: string }> {
