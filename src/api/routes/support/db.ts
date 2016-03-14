@@ -61,15 +61,22 @@ export interface Version {
 }
 
 /**
- * Find matching project versions.
+ * Sort two versions.
  */
-export function getVersions (source: string, name: string, version: string = '*'): Promise<Version[]> {
-  const range = semver.validRange(version)
+export function sortVersions (a: Version, b: Version) {
+  const result = semver.rcompare(a.tag, b.tag)
 
-  if (!range) {
-    return Promise.reject(createError(400, `Invalid semver range "${version}"`))
+  if (result === 0) {
+    return b.updated.getTime() - a.updated.getTime()
   }
 
+  return result
+}
+
+/**
+ * Find matching project versions.
+ */
+export function getVersions (source: string, name: string): Promise<Version[]> {
   return db('versions')
     .select([
       'versions.tag',
@@ -87,32 +94,47 @@ export function getVersions (source: string, name: string, version: string = '*'
     .orderBy('updated', 'desc')
     .then((results: Version[]) => {
       if (results.length === 0) {
-        return Promise.reject(createError(404, `No versions found for "${source}!${name}@${version}" in registry`))
+        return Promise.reject(createError(404, `No versions found for "${source}!${name}" in registry`))
       }
 
-      return results
-        .filter((x) => semver.satisfies(x.tag, range))
-        .sort((a, b) => {
-          const result = semver.rcompare(a.tag, b.tag)
-
-          if (result === 0) {
-            return b.updated.getTime() - a.updated.getTime()
-          }
-
-          return result
-        })
+      return results.sort(sortVersions)
     })
 }
 
-export function getLatest (source: string, name: string, version: string) {
-  return getVersions(source, name, version)
-    .then(versions => {
-      if (versions.length === 0) {
-        return Promise.reject(createError(404, `No version for "${source}!${name}@${version}" in registry`))
-      }
+/**
+ * Get the latest matching version.
+ */
+export function getMatchingVersions (source: string, name: string, version: string) {
+  const range = semver.validRange(version)
 
-      return versions[0]
+  if (!range) {
+    return Promise.reject(createError(400, `Invalid semver range "${version}"`))
+  }
+
+  return getVersions(source, name)
+    .then(versions => {
+      return versions.filter(x => semver.satisfies(x.version, range))
     })
+}
+
+/**
+ * Retrieve the latest available version.
+ */
+export function getLatest (source: string, name: string, version?: string) {
+  // Pick the first result.
+  function result (versions: Version[]) {
+    if (versions.length === 0) {
+      return Promise.reject(createError(404, `No versions for "${source}!${name}" match in registry`))
+    }
+
+    return Promise.resolve(versions[0])
+  }
+
+  if (version) {
+    return getMatchingVersions(source, name, version).then(result)
+  }
+
+  return getVersions(source, name).then(result)
 }
 
 export interface SearchOptions {
