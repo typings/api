@@ -159,7 +159,10 @@ export function search (options: SearchOptions) {
     .whereNull('versions.deprecated')
 
   if (options.query) {
-    dbQuery.whereRaw('tsv @@ plainto_tsquery(?)', [options.query])
+    dbQuery.where(function () {
+      this.whereRaw(`entries.name ILIKE '%' || ? || '%'`, [options.query])
+      this.orWhereRaw(`entries.name ILIKE '%' || ? || '%'`, [options.query])
+    })
   }
 
   if (options.name) {
