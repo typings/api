@@ -36,7 +36,7 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 
 > Get the latest version matching the semver range.
 
-### /tags/:tag
+#### /tags/:tag
 
 > Select a particular tag from the registry.
 
