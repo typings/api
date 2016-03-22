@@ -4,6 +4,7 @@ import db from '../../../support/knex'
 import arrify = require('arrify')
 import createError = require('http-errors')
 import { AMBIENT_SOURCES, MAIN_SOURCES, ALL_SOURCES } from '../../../support/constants'
+import { getVersion as getVersionInRedis } from './redis'
 
 export function getEntry (source: string, name: string) {
   return db('entries')
@@ -121,6 +122,16 @@ export function getMatchingVersions (source: string, name: string, version: stri
  * Retrieve the latest available version.
  */
 export function getLatest (source: string, name: string, version?: string) {
+  return getVersionInRedis(source, name).then((data) => {
+    if (data) {
+      return JSON.parse(data)
+    } else {
+      return getVersionInDB()
+    }
+  }).catch(() => {
+    return getVersionInDB()
+  })
+
   // Pick the first result.
   function result (versions: Version[]) {
     if (versions.length === 0) {
@@ -130,11 +141,13 @@ export function getLatest (source: string, name: string, version?: string) {
     return Promise.resolve(versions[0])
   }
 
-  if (version) {
-    return getMatchingVersions(source, name, version).then(result)
-  }
+  function getVersionInDB() {
+    if (version) {
+      return getMatchingVersions(source, name, version).then(result)
+    }
 
-  return getVersions(source, name).then(result)
+    return getVersions(source, name).then(result)
+  }
 }
 
 export interface SearchOptions {

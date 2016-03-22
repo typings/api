@@ -3,6 +3,10 @@ import Promise = require('any-promise')
 import semver = require('semver')
 import pad = require('pad-left')
 import db from '../../../support/knex'
+import {
+  setVersion as setVersionToRedis,
+  deleteVersion as deleteVersionInRedis
+} from './redis'
 
 export interface UpsertOptions {
   table: string
@@ -12,9 +16,17 @@ export interface UpsertOptions {
   trx?: knex.Transaction
   where?: string
   returning?: string[]
+  redisKey?: string
 }
 
 export function upsert (options: UpsertOptions): Promise<Object> {
+  if (options.table === 'versions') {
+    setVersionToRedis({
+      redisKey: options.redisKey,
+      insert: options.insert
+    })
+  }
+
   const insert = db(options.table)
     .insert(options.insert)
     .transacting(options.trx)
@@ -47,6 +59,7 @@ export interface VersionOptions {
   version: string
   compiler?: string
   location?: string
+  redisKey?: string
 }
 
 export interface EntryOptions {
@@ -105,7 +118,8 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
     updates: ['version', 'location', 'updated', 'compiler', 'deprecated'],
     conflicts: ['entry_id', 'tag'],
     returning: ['id'],
-    where: 'versions.updated <= excluded.updated'
+    where: 'versions.updated <= excluded.updated',
+    redisKey: options.redisKey
   })
     .then((row: any) => {
       if (row) {
@@ -123,6 +137,7 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
 
 export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<{ id: string }> {
   const { name, source, updated, version, compiler, location } = options
+  const redisKey = `${source}:${name}`
 
   return createEntry(options)
     .then((row) => {
@@ -140,7 +155,8 @@ export function createEntryAndVersion (options: EntryAndVersionOptions): Promise
         updated,
         version,
         compiler,
-        location
+        location,
+        redisKey
       })
     })
 }
@@ -154,25 +170,28 @@ export interface VersionsOptions {
 export function deleteVersions (options: VersionsOptions) {
   const { name, source, updated } = options
 
-  return db.transaction(trx => {
-    return db('entries')
-      .transacting(trx)
-      .first('id')
-      .where({ name, source })
-      .then((row) => {
-        if (row == null) {
-          return
-        }
+  return deleteVersionInRedis(source, name)
+    .then(() => {
+      return db.transaction(trx => {
+        return db('entries')
+        .transacting(trx)
+        .first('id')
+        .where({ name, source })
+        .then((row) => {
+          if (row == null) {
+            return
+          }
 
-        return db('versions')
-          .transacting(trx)
-          .update({ deprecated: updated })
-          .where('entry_id', '=', row.id)
-          .andWhere('updated', '<', updated)
-          .returning('id')
+          return db('versions')
+            .transacting(trx)
+            .update({ deprecated: updated })
+            .where('entry_id', '=', row.id)
+            .andWhere('updated', '<', updated)
+            .returning('id')
+        })
+        .then(trx.commit)
+        .catch(trx.rollback)
       })
-      .then(trx.commit)
-      .catch(trx.rollback)
   })
 }
 

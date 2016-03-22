@@ -118,13 +118,15 @@ export function indexTypingsFileChange (job: kue.Job) {
 
               const data: VersionOptions[] = Object.keys(versions).map((version) => {
                 const value = versions[version]
+                const redisKey = `${source}:${name}`
 
                 if (typeof value === 'string') {
                   return {
                     version,
                     entryId: row.id,
                     location: value,
-                    updated
+                    updated,
+                    redisKey
                   }
                 }
 
@@ -134,7 +136,8 @@ export function indexTypingsFileChange (job: kue.Job) {
                   compiler: value.compiler,
                   location: value.location,
                   description: value.description,
-                  updated
+                  updated,
+                  redisKey
                 }
               })
 

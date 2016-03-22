@@ -20,6 +20,7 @@
     "es6-promise": "github:typings/typed-es6-promise#94aac67ef7a14a8de8e9e1d3c1f9a26caa0d9fb1",
     "http-errors": "github:typed-typings/npm-http-errors#6fa04b5f2cc2560f4547820f5d138dbb5789345d",
     "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
+    "lodash": "registry:npm/lodash#4.0.0+20160305082308",
     "minimatch": "github:typed-typings/npm-minimatch#74f47de8acb42d668491987fc6bc144e7d9aa891",
     "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",
     "node-uuid": "github:rapropos/typed-node-uuid#a2ad36f2802416729eaad89559d76e0b03ba673c",
