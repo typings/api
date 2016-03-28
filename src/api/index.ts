@@ -17,11 +17,18 @@ import 'newrelic'
 import kue = require('kue')
 import express = require('express')
 import basicAuth = require('basic-auth-connect')
+import uuid = require('node-uuid')
 import ua = require('universal-analytics')
 import routes from './routes'
 
 // Create a Kue client before mounting UI.
 import '../support/kue'
+
+declare module 'express' {
+  interface Request {
+    visitor: ua.Visitor
+  }
+}
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -29,12 +36,20 @@ const analyticsId = process.env.UA_ID
 
 app.use('/queue', basicAuth(queueUsername, queuePassword), kue.app)
 
+if (analyticsId) {
+  app.use(function (req, res, next) {
+    const id = req.headers['typings-client-id'] || uuid.v1()
+    req.visitor = ua(analyticsId, id)
+    res.setHeader('Typings-Client-Id', id)
+  })
+}
+
 app.use(routes)
 
 if (analyticsId) {
   app.use(function (err: Error, req: express.Request, res: express.Response, next: (err: any) => any) {
-    // Log middleware errors (most likely "not found" errors).
-    ua(analyticsId).exception(err.message).send()
+    // Log middleware errors (mostly "not found" errors).
+    req.visitor.exception(err.message).send()
 
     return next(err)
   })
