@@ -124,7 +124,9 @@ export function getLatest (source: string, name: string, version?: string) {
   // Pick the first result.
   function result (versions: Version[]) {
     if (versions.length === 0) {
-      return Promise.reject(createError(404, `No versions for "${source}!${name}" match in registry`))
+      const key = `${source}!${name}` + (version ? `@${version}` : '')
+
+      return Promise.reject(createError(404, `No versions for "${key}" match in registry`))
     }
 
     return Promise.resolve(versions[0])
