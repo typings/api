@@ -2,7 +2,7 @@ import kue = require('kue')
 import thenify = require('thenify')
 import { Minimatch } from 'minimatch'
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { createEntry, createVersion, VersionOptions, deleteVersions } from './support/db'
+import { createAndGetEntry, createVersion, VersionOptions, deprecateOldVersions, deprecateOldEntryVersionsNotIn } from './support/db'
 import queue from '../../support/kue'
 
 import {
@@ -80,42 +80,30 @@ export function indexTypingsFileChange (job: kue.Job) {
   if (type === 'D') {
     return getDate(REPO_TYPINGS_PATH, commit)
       .then(updated => {
-        return deleteVersions({ name, source, updated })
+        return deprecateOldVersions({ name, source, updated })
       })
   }
 
   return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
     .then(() => getFile(REPO_TYPINGS_PATH, path, commit, 1024 * 400))
-    .then(data => {
-      // Handle bad JSON commits.
-      try {
-        return JSON.parse(data)
-      } catch (e) {
-        return {}
-      }
-    })
+    .then(data => JSON.parse(data))
     .then(entry => {
       const { homepage, versions } = entry
 
       // Skip iterations where versions does not exist (E.g. old commits).
-      if (!versions) {
+      if (typeof versions !== 'object') {
         return
       }
 
       return getDate(REPO_TYPINGS_PATH, commit)
         .then(updated => {
-          return createEntry({
+          return createAndGetEntry({
             name,
             homepage,
             source,
             updated
           })
             .then((row) => {
-              // Skip already updated entries.
-              if (row == null) {
-                return
-              }
-
               const data: VersionOptions[] = Object.keys(versions).map((version) => {
                 const value = versions[version]
 
@@ -139,6 +127,13 @@ export function indexTypingsFileChange (job: kue.Job) {
               })
 
               return Promise.all(data.map(data => createVersion(data)))
+                .then(() => {
+                  return deprecateOldEntryVersionsNotIn({
+                    entryId: row.id,
+                    updated,
+                    locations: data.map(x => x.location)
+                  })
+                })
             })
         })
     })

@@ -6,7 +6,7 @@ import { Minimatch } from 'minimatch'
 import queue from '../../support/kue'
 
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { createEntryAndVersion, deleteVersionsLike } from './support/db'
+import { createEntryAndVersion, deprecateOldVersionsLike } from './support/db'
 
 import {
   JOB_INDEX_DT_COMMIT,
@@ -91,7 +91,7 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
   if (type === 'D') {
     return getDate(REPO_DT_PATH, commit)
       .then(updated => {
-        return deleteVersionsLike({
+        return deprecateOldVersionsLike({
           updated,
           location: getLocation(path, '%')
         })
@@ -126,15 +126,21 @@ export function indexDtFileChange (job: kue.Job): Promise<any> {
 
       return getDate(REPO_DT_PATH, commit)
         .then(updated => {
-          return createEntryAndVersion({
-            name,
-            updated,
-            source,
-            homepage,
-            version,
-            compiler: undefined,
-            location: getLocation(path, commit)
-          })
+          return Promise.all([
+            createEntryAndVersion({
+              name,
+              updated,
+              source,
+              homepage,
+              version,
+              compiler: undefined,
+              location: getLocation(path, commit)
+            }),
+            deprecateOldVersionsLike({
+              updated,
+              location: getLocation(path, '%')
+            })
+          ])
         })
     })
 }

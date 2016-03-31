@@ -121,19 +121,25 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
     })
 }
 
-export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<{ id: string }> {
-  const { name, source, updated, version, compiler, location } = options
+export function createAndGetEntry (options: EntryOptions) {
+  const { name, source } = options
 
   return createEntry(options)
     .then((row) => {
-      if (row != null) {
-        return row
+      if (row == null) {
+        return db('entries')
+          .first('id')
+          .where({ name, source })
       }
 
-      return db('entries')
-        .first('id')
-        .where({ name, source })
+      return row
     })
+}
+
+export function createEntryAndVersion (options: EntryAndVersionOptions): Promise<{ id: string }> {
+  const { updated, version, compiler, location } = options
+
+  return createAndGetEntry(options)
     .then(({ id }) => {
       return createVersion({
         entryId: id,
@@ -151,7 +157,7 @@ export interface VersionsOptions {
   updated: Date
 }
 
-export function deleteVersions (options: VersionsOptions) {
+export function deprecateOldVersions (options: VersionsOptions) {
   const { name, source, updated } = options
 
   return db.transaction(trx => {
@@ -181,11 +187,27 @@ interface VersionsLikeOptions {
   updated: Date
 }
 
-export function deleteVersionsLike (options: VersionsLikeOptions) {
+export function deprecateOldVersionsLike (options: VersionsLikeOptions) {
   const { location, updated } = options
 
   return db('versions')
     .update({ deprecated: updated })
     .where('location', 'LIKE', location)
     .andWhere('updated', '<', updated)
+}
+
+interface EntryVersionsNotInOptions {
+  entryId: string
+  updated: Date
+  locations: string[]
+}
+
+export function deprecateOldEntryVersionsNotIn (options: EntryVersionsNotInOptions) {
+  const { entryId, locations, updated } = options
+
+  return db('versions')
+    .update({ deprecated: updated })
+    .where('entry_id', entryId)
+    .where('updated', '<', updated)
+    .whereNotIn('location', locations)
 }
