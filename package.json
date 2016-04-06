@@ -49,7 +49,7 @@
     "blue-tape": "^0.2.0",
     "foreman": "^1.4.1",
     "istanbul": "1.0.0-alpha.2",
-    "nock": "^7.0.2",
+    "nock": "^8.0.0",
     "nodemon": "^1.8.1",
     "tap-spec": "^4.1.1",
     "ts-node": "^0.7.0",
