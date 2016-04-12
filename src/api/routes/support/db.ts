@@ -3,7 +3,6 @@ import Promise = require('any-promise')
 import db from '../../../support/knex'
 import arrify = require('arrify')
 import createError = require('http-errors')
-import { AMBIENT_SOURCES, MAIN_SOURCES, ALL_SOURCES } from '../../../support/constants'
 
 export function getEntry (source: string, name: string) {
   return db('entries')
@@ -146,7 +145,6 @@ export interface SearchOptions {
   limit?: number
   sort?: string
   order?: string
-  ambient?: string
   source?: string
 }
 
@@ -171,20 +169,14 @@ export function search (options: SearchOptions) {
     dbQuery.andWhere('entries.name', options.name)
   }
 
-  let sources = ALL_SOURCES
-
-  // Override the sources search using `source=` or `ambient=`.
+  // Override the sources search using `source=`.
   if (options.source) {
-    sources = arrify(options.source)
-  } else if (options.ambient) {
-    sources = options.ambient === 'true' ? AMBIENT_SOURCES : MAIN_SOURCES
+    dbQuery.where(function () {
+      for (const source of arrify(options.source)) {
+        this.orWhere('entries.source', source)
+      }
+    })
   }
-
-  dbQuery.where(function () {
-    for (const source of sources) {
-      this.orWhere('entries.source', source)
-    }
-  })
 
   const totalQuery = dbQuery
     .clone()
