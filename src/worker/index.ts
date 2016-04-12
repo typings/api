@@ -35,3 +35,11 @@ queue.process(JOB_INDEX_DT_COMMIT, 1, unthenify(indexDtCommit))
 queue.process(JOB_INDEX_TYPINGS_COMMIT, 1, unthenify(indexTypingsCommit))
 queue.process(JOB_INDEX_DT_FILE_CHANGE, 1, unthenify(indexDtFileChange))
 queue.process(JOB_INDEX_TYPINGS_FILE_CHANGE, 1, unthenify(indexTypingsFileChange))
+
+process.once('SIGTERM', function () {
+  // TODO: Fix Kue definition to omit `type` argument.
+  queue.shutdown(5000, '', function (err: Error) {
+    console.log('Kue shutdown', err || '')
+    process.exit(0)
+  })
+})
