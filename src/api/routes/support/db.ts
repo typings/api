@@ -11,7 +11,6 @@ export function getEntry (source: string, name: string) {
     .select(db.raw('COUNT(entries.id) AS versions'))
     .where('entries.source', '=', source)
     .where('entries.name', '=', name)
-    .whereNull('versions.deprecated')
     .groupBy('entries.id')
     .then(entries => {
       if (entries.length === 0) {
@@ -89,7 +88,6 @@ export function getVersions (source: string, name: string): Promise<Version[]> {
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .where('entries.source', '=', source)
-    .whereNull('versions.deprecated')
     .orderBy('updated', 'desc')
     .then((results: Version[]) => {
       if (results.length === 0) {
@@ -184,7 +182,6 @@ export function search (options: SearchOptions) {
 
   const searchQuery = dbQuery.clone()
     .select(['entries.name', 'entries.source', 'entries.homepage', 'entries.description', 'entries.updated'])
-    .select(db.raw('COUNT(entries.id) AS versions'))
     .offset(offset)
     .limit(limit)
 
@@ -203,20 +200,18 @@ export function search (options: SearchOptions) {
     description: string
     rank: number
     updated: Date
-    versions: string
   }
 
   return Promise.all<Result[], [{ count: string }]>([searchQuery, totalQuery])
     .then(([results, totals]) => {
       return {
-        results: results.map(({ name, source, homepage, description, updated, versions }) => {
+        results: results.map(({ name, source, homepage, description, updated }) => {
           return {
             name,
             source,
             homepage: homepage || getHomepage(source, name),
             description,
-            updated,
-            versions: Number(versions)
+            updated
           }
         }),
         total: Number(totals[0].count)
