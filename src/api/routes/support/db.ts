@@ -74,8 +74,8 @@ export function sortVersions (a: Version, b: Version) {
 /**
  * Find matching project versions.
  */
-export function getVersions (source: string, name: string): Promise<Version[]> {
-  return db('versions')
+export function getVersions (source: string, name: string, includeDeprecated: boolean): Promise<Version[]> {
+  const query = db('versions')
     .select([
       'versions.tag',
       'versions.version',
@@ -89,6 +89,12 @@ export function getVersions (source: string, name: string): Promise<Version[]> {
     .where('entries.name', '=', name)
     .where('entries.source', '=', source)
     .orderBy('updated', 'desc')
+
+  if (!includeDeprecated) {
+    query.whereNull('deprecated')
+  }
+
+  return query
     .then((results: Version[]) => {
       if (results.length === 0) {
         return Promise.reject(createError(404, `No versions found for "${source}!${name}" in registry`))
@@ -108,7 +114,7 @@ export function getMatchingVersions (source: string, name: string, version: stri
     return Promise.reject(createError(400, `Invalid semver range "${version}"`))
   }
 
-  return getVersions(source, name)
+  return getVersions(source, name, true)
     .then(versions => {
       return versions.filter(x => semver.satisfies(x.version, range))
     })
@@ -133,7 +139,7 @@ export function getLatest (source: string, name: string, version?: string) {
     return getMatchingVersions(source, name, version).then(result)
   }
 
-  return getVersions(source, name).then(result)
+  return getVersions(source, name, false).then(result)
 }
 
 export interface SearchOptions {

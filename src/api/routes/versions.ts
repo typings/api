@@ -10,7 +10,7 @@ router.get(
   function (req: express.Request, res: express.Response, next: (err: Error) => any) {
     const { params } = req
 
-    return getVersions(params.source, params.name)
+    return getVersions(params.source, params.name, false)
       .then(versions => res.json({ versions }))
       .catch(next)
   }

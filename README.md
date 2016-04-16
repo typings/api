@@ -26,21 +26,29 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 * **source** The source to use (from `/search`)
 * **name** The name of the project (from `/search`)
 
-#### /versions/:range?
+#### /versions
 
-> Find all versions, or versions matching a range.
+> Get all versions of an entry.
 
-* **version** A semantic version query (default: `*`)
+#### /versions/latest
+
+> Get the latest version of an entry.
+
+#### /versions/:version
+
+> Get all versions matching a semver range.
+
+* **version** A semantic version range
 
 ##### /latest
 
-> Get the latest version matching the semver range.
+> Get the latest version matching a semver range.
 
 #### /tags/:tag
 
-> Select a particular tag from the registry.
+> Get a specific entry version by tag.
 
-* **tag** The semver tag for the version
+* **tag** The tag from the version entry
 
 ## Development
 
