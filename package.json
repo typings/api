@@ -73,7 +73,6 @@
     "minimatch": "^3.0.0",
     "ms": "^0.7.1",
     "newrelic": "^1.25.1",
-    "node-uuid": "^1.4.7",
     "pad-left": "^2.0.1",
     "pg": "^4.4.3",
     "promise-finally": "^2.0.1",

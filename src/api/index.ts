@@ -17,7 +17,6 @@ import 'newrelic'
 import kue = require('kue')
 import express = require('express')
 import basicAuth = require('basic-auth-connect')
-import uuid = require('node-uuid')
 import ua = require('universal-analytics')
 import routes from './routes'
 
@@ -38,9 +37,9 @@ app.use('/queue', basicAuth(queueUsername, queuePassword), kue.app)
 
 if (analyticsId) {
   app.use(function (req, res, next) {
-    const id = req.headers['typings-client-id'] || uuid.v1()
+    const id = req.headers['typings-client-id']
     req.visitor = ua(analyticsId, id)
-    res.setHeader('Typings-Client-Id', id)
+    res.setHeader('Typings-Client-Id', req.visitor.cid)
     return next()
   })
 }
