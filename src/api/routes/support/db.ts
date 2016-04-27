@@ -11,6 +11,7 @@ export function getEntry (source: string, name: string) {
     .select(db.raw('COUNT(entries.id) AS versions'))
     .where('entries.source', '=', source)
     .where('entries.name', '=', name)
+    .whereNull('versions.deprecated')
     .groupBy('entries.id')
     .then(entries => {
       if (entries.length === 0) {
