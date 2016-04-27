@@ -165,7 +165,7 @@ export function search (options: SearchOptions) {
   if (options.query) {
     dbQuery.where(function () {
       this.whereRaw(`entries.name ILIKE '%' || ? || '%'`, [options.query])
-      this.orWhereRaw(`entries.name ILIKE '%' || ? || '%'`, [options.query])
+      this.orWhereRaw(`entries.homepage ILIKE '%' || ? || '%'`, [options.query])
     })
   }
 
