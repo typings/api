@@ -188,6 +188,7 @@ export function search (options: SearchOptions) {
 
   const searchQuery = dbQuery.clone()
     .select(['entries.name', 'entries.source', 'entries.homepage', 'entries.description', 'entries.updated'])
+    .select(db.raw('COUNT(entries.id) AS versions'))
     .offset(offset)
     .limit(limit)
 
@@ -206,17 +207,19 @@ export function search (options: SearchOptions) {
     description: string
     rank: number
     updated: Date
+    versions: string
   }
 
   return Promise.all<Result[], [{ count: string }]>([searchQuery, totalQuery])
     .then(([results, totals]) => {
       return {
-        results: results.map(({ name, source, homepage, description, updated }) => {
+        results: results.map(({ name, source, homepage, description, updated, versions }) => {
           return {
             name,
             source,
             homepage: homepage || getHomepage(source, name),
             description,
+            versions: Number(versions),
             updated
           }
         }),
