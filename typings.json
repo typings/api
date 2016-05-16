@@ -1,5 +1,5 @@
 {
-  "ambientDependencies": {
+  "globalDependencies": {
     "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
     "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#dd638012d63e069f2c99d06ef4dcc9616a943ee4",
     "knex": "github:DefinitelyTyped/DefinitelyTyped/knex/knex.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",

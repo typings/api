@@ -11,7 +11,7 @@
   "files": [
     "src/api/index.ts",
     "src/worker/index.ts",
-    "typings/main.d.ts",
+    "typings/index.d.ts",
     "src/migrations/20151212150400-init.ts",
     "src/migrations/20151231151700-search.ts",
     "src/migrations/20160109201227-clear-old-kue-job.ts",
