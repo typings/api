@@ -42,7 +42,7 @@ export function getTag (source: string, name: string, tag: string) {
     .where('versions.tag', '=', tag)
     .then(tags => {
       if (tags.length === 0) {
-        return Promise.reject(createError(404, `No entry found for "${source}!${name}" in registry`))
+        return Promise.reject(createError(404, `No entry found for "${source}~${name}" in registry`))
       }
 
       return tags[0]
@@ -92,21 +92,28 @@ export function sortVersions (a: Version, b: Version) {
  * Find matching project versions.
  */
 export function getVersions (source: string, name: string, includeDeprecated: boolean): Promise<Version[]> {
+  const fields = [
+    'versions.tag',
+    'versions.version',
+    'versions.description',
+    'versions.compiler',
+    'versions.location',
+    'versions.updated'
+  ]
+
+  // Return `deprecated` when asked for.
+  if (includeDeprecated) {
+    fields.push('versions.deprecated')
+  }
+
   const query = db('versions')
-    .select([
-      'versions.tag',
-      'versions.version',
-      'versions.description',
-      'versions.compiler',
-      'versions.location',
-      'versions.updated',
-      'versions.deprecated'
-    ])
+    .select(fields)
     .innerJoin('entries', 'entries.id', 'versions.entry_id')
     .where('entries.name', '=', name)
     .where('entries.source', '=', source)
     .orderBy('updated', 'desc')
 
+  // Filter out deprecated entries by default.
   if (!includeDeprecated) {
     query.whereNull('deprecated')
   }

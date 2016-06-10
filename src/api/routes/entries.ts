@@ -13,9 +13,9 @@ router.get('/:source/:name', track('Entry'), function (req, res, next) {
 })
 
 router.get('/:source/:name/versions', track('Entry Versions'), function (req, res, next) {
-  const { params } = req
+  const { params, query } = req
 
-  return getVersions(params.source, params.name, false)
+  return getVersions(params.source, params.name, !!query.deprecated)
     .then(versions => res.json(versions))
     .catch(next as any)
 })
