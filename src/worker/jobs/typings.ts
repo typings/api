@@ -1,5 +1,6 @@
 import kue = require('kue')
 import thenify = require('thenify')
+import arrify = require('arrify')
 import { Minimatch } from 'minimatch'
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
 import { createAndGetEntry, createVersion, VersionOptions, deprecateOldVersions, deprecateOldEntryVersionsNotIn } from './support/db'
@@ -15,10 +16,19 @@ import {
 
 const registryPaths = new Minimatch('{npm,github,bower,common,shared,lib,env,global}/**/*.json')
 
+export interface TypingsUpdateJobData {
+  commit: string
+}
+
+export interface TypingsChangeJobData {
+  commit: string
+  change: [string, string]
+}
+
 /**
  * Job queue processing registry data.
  */
-export function updateTypings (job: kue.Job) {
+export function updateTypings (job: kue.Job<TypingsUpdateJobData>) {
   return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
     .then(() => processCommits(job))
 }
@@ -26,7 +36,7 @@ export function updateTypings (job: kue.Job) {
 /**
  * Process commits since last job.
  */
-function processCommits (job: kue.Job) {
+function processCommits (job: kue.Job<TypingsUpdateJobData>) {
   const { commit } = job.data
 
   return commitsSince(REPO_TYPINGS_PATH, commit)
@@ -44,7 +54,7 @@ function processCommits (job: kue.Job) {
     })
 }
 
-export function indexTypingsCommit (job: kue.Job) {
+export function indexTypingsCommit (job: kue.Job<TypingsUpdateJobData>) {
   const { commit } = job.data
 
   return repoUpdated(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, TIMEOUT_REPO_POLL)
@@ -68,7 +78,7 @@ export function indexTypingsCommit (job: kue.Job) {
     })
 }
 
-export function indexTypingsFileChange (job: kue.Job) {
+export function indexTypingsFileChange (job: kue.Job<TypingsChangeJobData>) {
   const { change, commit } = job.data
   const [ type, path ] = change
 
@@ -104,25 +114,29 @@ export function indexTypingsFileChange (job: kue.Job) {
             updated
           })
             .then((row) => {
-              const data: VersionOptions[] = Object.keys(versions).map((version) => {
-                const value = versions[version]
+              const data: VersionOptions[] = []
 
-                if (typeof value === 'string') {
-                  return {
-                    version,
-                    entryId: row.id,
-                    location: value,
-                    updated
+              Object.keys(versions).forEach((version) => {
+                const values = arrify(versions[version])
+
+                for (const value of values) {
+                  if (typeof value === 'string') {
+                    data.push({
+                      version,
+                      entryId: row.id,
+                      location: value,
+                      updated
+                    })
+                  } else {
+                    data.push({
+                      version,
+                      entryId: row.id,
+                      compiler: value.compiler,
+                      location: value.location,
+                      description: value.description,
+                      updated
+                    })
                   }
-                }
-
-                return {
-                  version,
-                  entryId: row.id,
-                  compiler: value.compiler,
-                  location: value.location,
-                  description: value.description,
-                  updated
                 }
               })
 

@@ -8,7 +8,7 @@ import queue from '../../support/kue'
  * Check if a job exists in the queue.
  */
 export function jobExists (type: string) {
-  return Promise.all<kue.Job[], kue.Job[]>([
+  return Promise.all<Array<kue.Job<any>>, Array<kue.Job<any>>>([
     thenify(done => kue.Job.rangeByType(type, 'delayed', 0, 1, 'asc', done))(),
     thenify(done => kue.Job.rangeByType(type, 'active', 0, 1, 'asc', done))()
   ])
@@ -20,8 +20,8 @@ export function jobExists (type: string) {
 /**
  * Create a job after each one finishes.
  */
-export function createJobAfter (fn: (job: kue.Job) => Promise<any>, type: string, delay: number) {
-  return function (job: kue.Job) {
+export function createJobAfter (fn: (job: kue.Job<any>) => Promise<any>, type: string, delay: number) {
+  return function (job: kue.Job<any>) {
     return fn(job)
       .then(function (data) {
         const job = queue.create(type, data)
@@ -35,7 +35,7 @@ export function createJobAfter (fn: (job: kue.Job) => Promise<any>, type: string
 /**
  * Set up a function that starts or repeats itself.
  */
-export function setupRepeatJob (fn: (job: kue.Job) => Promise<any>, type: string, data: any, delay: number) {
+export function setupRepeatJob (fn: (job: kue.Job<any>) => Promise<any>, type: string, data: any, delay: number) {
   const handle = unthenify(createJobAfter(fn, type, delay))
 
   queue.process(type, 1, handle)

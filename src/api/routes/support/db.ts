@@ -9,8 +9,8 @@ export function getEntry (source: string, name: string) {
     .rightOuterJoin('versions', 'entries.id', 'versions.entry_id')
     .select(['entries.name', 'entries.source', 'entries.homepage', 'entries.description', 'entries.updated'])
     .select(db.raw('COUNT(entries.id) AS versions'))
-    .where('entries.source', '=', source)
     .where('entries.name', '=', name)
+    .where('entries.source', '=', source)
     .whereNull('versions.deprecated')
     .groupBy('entries.id')
     .then(entries => {
@@ -63,13 +63,29 @@ export interface Version {
  * Sort two versions.
  */
 export function sortVersions (a: Version, b: Version) {
-  const result = semver.rcompare(a.tag, b.tag)
+  const tagOrder = semver.rcompare(a.version, b.version)
 
-  if (result === 0) {
+  if (tagOrder === 0) {
+    if (a.compiler && b.compiler) {
+      const compilerOrder = semver.rcompare(a.compiler, b.compiler)
+
+      if (compilerOrder !== 0) {
+        return compilerOrder
+      }
+    }
+
+    if (a.compiler) {
+      return 1
+    }
+
+    if (b.compiler) {
+      return -1
+    }
+
     return b.updated.getTime() - a.updated.getTime()
   }
 
-  return result
+  return tagOrder
 }
 
 /**

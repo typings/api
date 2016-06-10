@@ -47,6 +47,7 @@ export interface VersionOptions {
   version: string
   compiler?: string
   location?: string
+  description?: string
 }
 
 export interface EntryOptions {
@@ -84,7 +85,7 @@ function getTimestamp (date: Date): string {
 }
 
 export function createVersion (options: VersionOptions): Promise<{ id: string }> {
-  const { entryId, version, compiler, location, updated } = options
+  const { entryId, version, compiler, location, updated, description } = options
   const tag = `${version}+${getTimestamp(updated)}` + (compiler ? `-${compiler}` : '')
 
   if (!semver.valid(tag)) {
@@ -100,9 +101,10 @@ export function createVersion (options: VersionOptions): Promise<{ id: string }>
       compiler,
       location,
       updated,
+      description,
       deprecated: null
     },
-    updates: ['version', 'location', 'updated', 'compiler', 'deprecated'],
+    updates: ['version', 'location', 'updated', 'description', 'compiler', 'deprecated'],
     conflicts: ['entry_id', 'tag'],
     returning: ['id'],
     where: 'versions.updated <= excluded.updated'

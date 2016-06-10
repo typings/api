@@ -16,6 +16,15 @@ import {
   JOB_INDEX_DT_FILE_CHANGE
 } from '../../support/constants'
 
+export interface DtUpdateJobData {
+  commit: string
+}
+
+export interface DtChangeJobData {
+  commit: string
+  change: [string, string]
+}
+
 const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+\\+?|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
 
 const DT_CONTENT_VERSION_REGEXP = new RegExp(`^\/\/ *Type definitions for.+?v?(${VERSION_REGEXP_STRING})`, 'im')
@@ -27,7 +36,7 @@ const definitionPaths = new Minimatch('**/*.d.ts')
 /**
  * Job queue processing DefinitelyTyped repo data.
  */
-export function updateDt (job: kue.Job) {
+export function updateDt (job: kue.Job<DtUpdateJobData>) {
   return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
     .then(() => processCommits(job))
 }
@@ -35,7 +44,7 @@ export function updateDt (job: kue.Job) {
 /**
  * Process commits since last job.
  */
-function processCommits (job: kue.Job) {
+function processCommits (job: kue.Job<DtUpdateJobData>) {
   const { commit } = job.data
 
   return commitsSince(REPO_DT_PATH, commit)
@@ -56,7 +65,7 @@ function processCommits (job: kue.Job) {
 /**
  * Index DT commit changes.
  */
-export function indexDtCommit (job: kue.Job) {
+export function indexDtCommit (job: kue.Job<DtUpdateJobData>) {
   const { commit } = job.data
 
   return repoUpdated(REPO_DT_PATH, REPO_DT_URL, TIMEOUT_REPO_POLL)
@@ -83,7 +92,7 @@ export function indexDtCommit (job: kue.Job) {
 /**
  * Index file changes sequentially.
  */
-export function indexDtFileChange (job: kue.Job): Promise<any> {
+export function indexDtFileChange (job: kue.Job<DtChangeJobData>): Promise<any> {
   const source = 'dt'
   const { change, commit } = job.data
   const [ type, path ] = change

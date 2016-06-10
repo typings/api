@@ -9,7 +9,7 @@ import '../support/kue'
  */
 export function up (): Promise<void> {
   return thenify(done => kue.Job.rangeByState('complete', 0, 50, 'asc', done))()
-    .then((jobs: kue.Job[]) => {
+    .then((jobs: Array<kue.Job<any>>) => {
       const removeJobs = jobs.map(job => {
         return thenify(done => job.remove(done))()
       })
