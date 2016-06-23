@@ -44,6 +44,9 @@ export function down () {
       return db.raw('ALTER TABLE versions ALTER COLUMN compiler DROP NOT NULL')
     })
     .then(() => {
-      return db.raw('ALTER TABLE versions ADD CONSTRAINT versions_entry_id_version_compiler_unique UNIQUE (entry_id, version, compiler)')
+      return db.raw(
+        'ALTER TABLE versions ADD CONSTRAINT ' +
+        'versions_entry_id_version_compiler_unique UNIQUE (entry_id, version, compiler)'
+      )
     })
 }

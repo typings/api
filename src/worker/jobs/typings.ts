@@ -3,7 +3,13 @@ import thenify = require('thenify')
 import arrify = require('arrify')
 import { Minimatch } from 'minimatch'
 import { repoUpdated, commitsSince, commitFilesChanged, getFile, getDate } from './support/git'
-import { createAndGetEntry, createVersion, VersionOptions, deprecateOldVersions, deprecateOldEntryVersionsNotIn } from './support/db'
+import {
+  createAndGetEntry,
+  createVersion,
+  VersionOptions,
+  deprecateOldVersions,
+  deprecateOldEntryVersionsNotIn
+} from './support/db'
 import queue from '../../support/kue'
 
 import {

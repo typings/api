@@ -19,7 +19,8 @@ export function down () {
     .then(() => {
       return db.raw(
         'ALTER TABLE entries ADD CONSTRAINT "entries_source_check" ' +
-        'CHECK (source = ANY (ARRAY[\'npm\'::text, \'bower\'::text, \'ambient\'::text, \'github\'::text, \'common\'::text, \'dt\'::text]))'
+        'CHECK (source = ANY (ARRAY[\'npm\'::text, \'bower\'::text, \'ambient\'::text, ' +
+        '\'github\'::text, \'common\'::text, \'dt\'::text]))'
       )
     })
 }
