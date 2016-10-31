@@ -72,7 +72,7 @@
     "kue": "^0.11.0",
     "minimatch": "^3.0.0",
     "ms": "^0.7.1",
-    "newrelic": "^1.25.1",
+    "newrelic": "^1.33.0",
     "pad-left": "^2.0.1",
     "pg": "^6.0.0",
     "promise-finally": "^2.0.1",
