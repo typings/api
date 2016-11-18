@@ -2,9 +2,9 @@ import arrify = require('arrify')
 import throat = require('throat')
 import semver = require('semver')
 import { Minimatch } from 'minimatch'
-import debug from '../support/debug'
-import { repo, commitsSince, commitFilesChanged, getFile, getDate } from '../support/git'
-import { REPO_TYPINGS_PATH, REPO_TYPINGS_URL } from '../support/constants'
+import debug from '../../support/debug'
+import { repo, commitsSince, commitFilesChanged, getFile, getDate } from '../../support/git'
+import { REPO_TYPINGS_PATH, REPO_TYPINGS_URL } from '../../support/constants'
 import {
   createAndGetEntry,
   createVersion,
@@ -13,7 +13,7 @@ import {
   deprecateOldEntryVersionsNotIn,
   getLatestCommit,
   createCommit
-} from '../support/db'
+} from '../../support/db'
 
 const REGISTRY_PATHS = new Minimatch('{npm,github,bower,common,shared,lib,env,global}/**/*.json')
 
@@ -125,7 +125,7 @@ const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', pa
   })
 })
 
-async function exec () {
+export async function exec () {
   const latest = await getLatestCommit(REPO_TYPINGS_URL)
 
   await repo(REPO_TYPINGS_PATH, REPO_TYPINGS_URL, 'master')
@@ -139,11 +139,6 @@ async function exec () {
   await Promise.all(since.map(commit => {
     return indexCommit(commit)
   }))
-}
 
-exec()
-  .then(() => process.exit(0))
-  .catch(err => {
-    console.error(err)
-    process.exit(1)
-  })
+  return since
+}

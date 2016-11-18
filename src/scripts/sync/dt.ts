@@ -2,10 +2,10 @@ import semver = require('semver')
 import throat = require('throat')
 import { Minimatch } from 'minimatch'
 import { join, dirname, basename } from 'path'
-import debug from '../support/debug'
-import { repo, commitsSince, commitFilesChanged, getFile, getDate } from '../support/git'
-import { createEntryAndVersion, deprecateOldVersionsLike, getLatestCommit, createCommit } from '../support/db'
-import { REPO_DT_PATH, REPO_DT_URL } from '../support/constants'
+import debug from '../../support/debug'
+import { repo, commitsSince, commitFilesChanged, getFile, getDate } from '../../support/git'
+import { createEntryAndVersion, deprecateOldVersionsLike, getLatestCommit, createCommit } from '../../support/db'
+import { REPO_DT_PATH, REPO_DT_URL } from '../../support/constants'
 
 const VERSION_REGEXP_STRING = '\\d+\\.(?:\\d+\\+?|x)(?:\\.(?:\\d+|x)(?:\\-[^\\-\\s]+)?)?'
 
@@ -119,7 +119,7 @@ const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', pa
   ])
 })
 
-async function exec () {
+export async function exec () {
   const latest = await getLatestCommit(REPO_DT_URL)
 
   await repo(REPO_DT_PATH, REPO_DT_URL, 'master')
@@ -133,14 +133,9 @@ async function exec () {
   await Promise.all(since.map(commit => {
     return indexCommit(commit)
   }))
-}
 
-exec()
-  .then(() => process.exit(0))
-  .catch(err => {
-    console.error(err)
-    process.exit(1)
-  })
+  return since
+}
 
 /**
  * Normalize possible version strings to semver.
