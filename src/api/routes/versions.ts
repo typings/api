@@ -7,10 +7,10 @@ const router = express.Router()
 router.get(
   '/:source/:name',
   track('Versions'),
-  function (req: express.Request, res: express.Response, next: (err: Error) => any) {
+  function (req: express.Request, res: express.Response, next: express.NextFunction) {
     const { params } = req
 
-    return getVersions(params.source, params.name, false)
+    return getVersions(params['source'], params['name'], false)
       .then(versions => res.json({ versions }))
       .catch(next)
   }
@@ -19,10 +19,10 @@ router.get(
 router.get(
   '/:source/:name/:version',
   track('Version Range'),
-  function (req: express.Request, res: express.Response, next: (err: Error) => any) {
+  function (req: express.Request, res: express.Response, next: express.NextFunction) {
     const { params } = req
 
-    return getMatchingVersions(params.source, params.name, params.version)
+    return getMatchingVersions(params['source'], params['name'], params['version'])
       .then(versions => res.json({ versions }))
       .catch(next)
   }

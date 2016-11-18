@@ -51,7 +51,7 @@ Simple RESTful API for typings integration. Available at https://api.typings.org
 
 ## Development
 
-Requires Redis and Postgres. Run all migration scripts to get started.
+Requires Postgres. Run all migration scripts to get started.
 
 ```sh
 # Clone and install dependencies.
@@ -62,17 +62,13 @@ npm install
 npm run migrate -- up -a
 
 # Start the build and watch processes.
-npm run build-watch
-npm run start-watch
+npm run dev
 ```
 
 ### Environment
 
 ```sh
 export DATABASE_URL="postgres://admin:admin@localhost:5432/typings_registry"
-export REDIS_URL="redis://localhost:6379"
-export QUEUE_UI_USERNAME="admin"
-export QUEUE_UI_PASSWORD="admin"
 
 export NEW_RELIC_ENABLED=false
 export NEW_RELIC_NO_CONFIG_FILE=true

@@ -1,5 +1,6 @@
 {
   "name": "api",
+  "private": true,
   "version": "0.0.0",
   "description": "The TypeScript definition registry",
   "main": "dist/app.js",
@@ -11,17 +12,16 @@
   "scripts": {
     "lint": "tslint \"src/**/*.ts\"",
     "build": "rm -rf dist/ && tsc",
-    "build-watch": "tsc --watch",
-    "test-spec": "ts-node node_modules/blue-tape/bin/blue-tape.js \"src/**/*.spec.ts\" | tap-spec",
-    "test-cov": "ts-node node_modules/istanbul/lib/cli.js cover -e .ts --print none -x \"*.d.ts\" -x \"*.spec.ts\" blue-tape -- \"src/**/*.spec.ts\" | tap-spec",
+    "build:dev": "tsc --watch",
+    "dev": "concurrently \"npm run build:dev\" \"npm run start:dev\"",
     "test": "npm run lint && npm run build && echo \"TODO: Write unit tests\"",
     "prepublish": "typings install && npm run build",
-    "start": "nf start --wrap",
-    "start-watch": "nodemon --exec \"npm run start\" --watch dist",
+    "start": "nf start",
+    "start:dev": "onchange -i \"dist/**/*\" -- npm run start",
     "migrate": "immigration -d dist/migrations"
   },
   "engines": {
-    "node": "4.2.3"
+    "node": "6.x"
   },
   "repository": {
     "type": "git",
@@ -46,33 +46,25 @@
   },
   "homepage": "https://github.com/typings/api",
   "devDependencies": {
-    "blue-tape": "^1.0.0",
+    "concurrently": "^3.1.0",
     "foreman": "^2.0.0",
-    "istanbul": "1.0.0-alpha.2",
-    "nock": "^9.0.0",
-    "nodemon": "^1.8.1",
-    "tap-spec": "^4.1.1",
+    "onchange": "^3.0.2",
     "ts-node": "^1.1.0",
     "tslint": "^3.1.1",
     "tslint-config-standard": "^1.5.0",
-    "typescript": "^2.0.3",
+    "typescript": "^2.1.1",
     "typings": "^2.0.0"
   },
   "dependencies": {
-    "any-promise": "^1.1.0",
     "arrify": "^1.0.1",
-    "basic-auth-connect": "^1.0.0",
-    "batch": "^0.5.3",
     "debug": "^2.2.0",
+    "envobj": "^1.0.2",
     "express": "^4.13.3",
     "glob": "^7.0.0",
     "http-errors": "^1.4.0",
     "immigration": "^2.0.0",
-    "invariant": "^2.2.0",
     "knex": "^0.12.0",
-    "kue": "^0.11.0",
     "minimatch": "^3.0.0",
-    "ms": "^0.7.1",
     "newrelic": "^1.25.1",
     "pad-left": "^2.0.1",
     "pg": "^6.0.0",
@@ -80,7 +72,7 @@
     "semver": "^5.1.0",
     "split": "^1.0.0",
     "thenify": "^3.1.1",
-    "universal-analytics": "^0.4.2",
-    "unthenify": "^1.0.1"
+    "throat": "^3.0.0",
+    "universal-analytics": "^0.4.2"
   }
 }

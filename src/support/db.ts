@@ -2,11 +2,11 @@ import knex = require('knex')
 import Promise = require('any-promise')
 import semver = require('semver')
 import pad = require('pad-left')
-import db from '../../../support/knex'
+import db from './knex'
 
 export interface UpsertOptions {
   table: string
-  insert: { [key: string]: string | number | boolean | Date }
+  insert: { [key: string]: string | number | boolean | Date | knex.Raw }
   updates: string[]
   conflicts: string[]
   trx?: knex.Transaction
@@ -24,7 +24,7 @@ export function upsert (options: UpsertOptions): Promise<Object> {
     (options.where ? ` WHERE ${options.where}` : '') +
     (options.returning ? ` RETURNING ${options.returning.join(', ')}` : '')
 
-  return db.raw(insert).then(function (response) {
+  return db.raw(insert).then(function (response: any) {
     const { rows } = response
 
     return rows.length ? rows[0] : undefined
@@ -169,7 +169,7 @@ export function deprecateOldVersions (options: VersionsOptions) {
       .where({ name, source })
       .then((row) => {
         if (row == null) {
-          return
+          return undefined
         }
 
         return db('versions')
@@ -212,4 +212,27 @@ export function deprecateOldEntryVersionsNotIn (options: EntryVersionsNotInOptio
     .where('entry_id', entryId)
     .where('updated', '<', updated)
     .whereNotIn('location', locations)
+}
+
+export function getLatestCommit (repo: string) {
+  return db('commits')
+    .first('id', 'commit', 'repo', 'date')
+    .where('repo', repo)
+    .orderBy('date', 'DESC')
+    .limit(1)
+}
+
+export function createCommit (repo: string, commit: string) {
+  return upsert({
+    table: 'commits',
+    insert: {
+      repo,
+      commit,
+      date: db.raw('current_timestamp')
+    },
+    updates: ['date'],
+    conflicts: ['repo', 'commit'],
+    returning: ['id'],
+    where: 'commits.date <= excluded.date'
+  })
 }

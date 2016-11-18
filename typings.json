@@ -1,32 +1,21 @@
 {
   "globalDependencies": {
-    "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
-    "express": "github:DefinitelyTyped/DefinitelyTyped/express/express.d.ts#dd638012d63e069f2c99d06ef4dcc9616a943ee4",
-    "knex": "github:DefinitelyTyped/DefinitelyTyped/knex/knex.d.ts#a3633084f4b29a36e47c434a5246124852d7f667",
-    "mime": "github:DefinitelyTyped/DefinitelyTyped/mime/mime.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6",
-    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#8cf8164641be73e8f1e652c2a5b967c7210b6729",
-    "serve-static": "github:DefinitelyTyped/DefinitelyTyped/serve-static/serve-static.d.ts#3b6d42912788a3b5b47edf271f551b80966fd9e6"
-  },
-  "devDependencies": {
-    "blue-tape": "github:typings/typed-blue-tape#a4e41a85d6f760e7c60088127968eae7d3a556fa"
+    "knex": "registry:dt/knex#0.0.0+20161009195237",
+    "node": "registry:env/node#6.0.0+20161105011511"
   },
   "dependencies": {
-    "any-promise": "github:typings/typed-any-promise#74ba6cf22149ff4de39c2338a9cb84f9ded6f042",
-    "arrify": "github:typings/typed-arrify#32383d5fd3e6a8614abb6dba254a3aab07cd7424",
-    "basic-auth-connect": "github:typed-typings/npm-basic-auth-connect#42bcc7273c013e68d9b01985001ca417da031457",
-    "debug": "github:typings/typed-debug#0a12b05a76400107c70a266dcd4c2b656baa7dae",
-    "es6-promise": "github:typings/typed-es6-promise#94aac67ef7a14a8de8e9e1d3c1f9a26caa0d9fb1",
-    "http-errors": "github:typed-typings/npm-http-errors#6fa04b5f2cc2560f4547820f5d138dbb5789345d",
-    "invariant": "github:typings/typed-invariant#58403cee078ebef52112c4227c4d23a97821ef5c",
-    "kue": "registry:npm/kue#0.11.0+20160604035924",
-    "minimatch": "github:typed-typings/npm-minimatch#74f47de8acb42d668491987fc6bc144e7d9aa891",
-    "ms": "github:typings/typed-ms#f40c81c7f45bc35e970de851117c29fc959220b2",
-    "pad-left": "github:typed-typings/npm-pad-left#c457a581be16591c41280e8a42874a6b475bfe1e",
-    "promise-finally": "npm:promise-finally",
-    "semver": "github:typed-typings/npm-semver#e98b40dcb906211d06ea8272570719777cece453",
-    "split": "github:typed-typings/npm-split#900a8ae7efe14cc2196b2a60e9ef2aad85c6f1c2",
-    "thenify": "github:typings/typed-thenify#b317b4b5dbcddf0cdf12c1fa005a577f089a7663",
-    "universal-analytics": "registry:npm/universal-analytics#0.3.10+20160419033917",
-    "unthenify": "npm:unthenify"
+    "arrify": "registry:npm/arrify#1.0.0+20160723033700",
+    "bluebird": "registry:npm/bluebird#3.4.1+20160909132857",
+    "debug": "registry:npm/debug#2.0.0+20160723033700",
+    "envobj": "registry:npm/envobj#1.0.1+20160723033700",
+    "express": "registry:npm/express#4.14.0+20160925001530",
+    "http-errors": "registry:npm/http-errors#1.4.0+20160723033700",
+    "minimatch": "registry:npm/minimatch#3.0.0+20160723033700",
+    "pad-left": "registry:npm/pad-left#2.0.0+20160723033700",
+    "semver": "registry:npm/semver#5.0.0+20160723033700",
+    "split": "registry:npm/split#1.0.0+20160723033700",
+    "thenify": "registry:npm/thenify#3.1.0+20160723033700",
+    "throat": "registry:npm/throat#2.0.0+20160723033700",
+    "universal-analytics": "registry:npm/universal-analytics#0.3.10+20160723033700"
   }
 }

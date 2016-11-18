@@ -187,7 +187,7 @@ export function search (options: SearchOptions) {
     .whereNull('versions.deprecated')
 
   if (options.query) {
-    dbQuery.where(function () {
+    dbQuery.where(function (this: any) {
       this.whereRaw(`entries.name ILIKE '%' || ? || '%'`, [options.query])
       this.orWhereRaw(`entries.homepage ILIKE '%' || ? || '%'`, [options.query])
     })
@@ -199,7 +199,7 @@ export function search (options: SearchOptions) {
 
   // Override the sources search using `source=`.
   if (options.source) {
-    dbQuery.where(function () {
+    dbQuery.where(function (this: any) {
       for (const source of arrify(options.source)) {
         this.orWhere('entries.source', source)
       }
@@ -255,7 +255,7 @@ export function search (options: SearchOptions) {
 /**
  * Get the default homepage for registry entries.
  */
-function getHomepage (source: string, name: string) {
+function getHomepage (source: string, name: string): string | void {
   if (source === 'npm') {
     return `https://www.npmjs.com/package/${name}`
   }
