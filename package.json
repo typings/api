@@ -50,7 +50,7 @@
     "foreman": "^2.0.0",
     "onchange": "^3.0.2",
     "ts-node": "^1.1.0",
-    "tslint": "^3.1.1",
+    "tslint": "^4.0.2",
     "tslint-config-standard": "^2.0.0",
     "typescript": "^2.1.1",
     "typings": "^2.0.0"
