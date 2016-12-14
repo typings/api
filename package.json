@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "arrify": "^1.0.1",
-    "debug": "^2.2.0",
+    "debug": "^2.4.0",
     "envobj": "^1.0.2",
     "express": "^4.13.3",
     "glob": "^7.0.0",
