@@ -1,7 +1,7 @@
 {
   "globalDependencies": {
     "knex": "registry:dt/knex#0.0.0+20161009195237",
-    "node": "registry:env/node#6.0.0+20161105011511"
+    "node": "registry:env/node#6.0.0+20170213133316"
   },
   "dependencies": {
     "arrify": "registry:npm/arrify#1.0.0+20160723033700",

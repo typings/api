@@ -50,9 +50,9 @@
     "foreman": "^2.0.0",
     "onchange": "^3.0.2",
     "ts-node": "^2.0.0",
-    "tslint": "^4.0.2",
-    "tslint-config-standard": "^3.0.0",
-    "typescript": "^2.1.1",
+    "tslint": "^4.5.0",
+    "tslint-config-standard": "^4.0.0",
+    "typescript": "^2.2.1",
     "typings": "^2.0.0"
   },
   "dependencies": {

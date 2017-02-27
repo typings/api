@@ -15,35 +15,6 @@ const DT_FILE_VERSION_REGEXP = new RegExp(`-${VERSION_REGEXP_STRING}$`)
 
 const DEFINITION_PATHS = new Minimatch('**/*.d.ts')
 
-const indexCommit = throat(1, async function (commit: string) {
-  debug(`index commit: ${commit}`)
-
-  const files = await commitFilesChanged(REPO_DT_PATH, commit)
-
-  await Promise.all(files.map(async (change) => {
-    const [type, path] = change
-    const matched = DEFINITION_PATHS.match(path)
-
-    debug(`change (${matched ? 'matched' : 'not matched'}): ${change[0]} ${change[1]}`)
-
-    if (!matched) {
-      return undefined
-    }
-
-    if (type[0] === 'A' || type[0] === 'M') {
-      return indexFile(commit, 'A', path)
-    }
-
-    if (type[0] === 'D') {
-      return indexFile(commit, 'D', path)
-    }
-
-    console.error(`Unknown change: ${commit} "${change.join(' ')}"`)
-  }))
-
-  await createCommit(REPO_DT_URL, commit)
-})
-
 const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', path: string) {
   if (type === 'D') {
     const updated = await getDate(REPO_DT_PATH, commit)
@@ -119,24 +90,6 @@ const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', pa
   ])
 })
 
-export async function exec () {
-  const latest = await getLatestCommit(REPO_DT_URL)
-
-  await repo(REPO_DT_PATH, REPO_DT_URL, 'master')
-
-  debug(`restarting from ${latest ? latest.commit : 'beginning'}`)
-
-  const since = await commitsSince(REPO_DT_PATH, latest ? latest.commit : undefined)
-
-  debug(`indexing ${since.length} commits`)
-
-  await Promise.all(since.map(commit => {
-    return indexCommit(commit)
-  }))
-
-  return since
-}
-
 /**
  * Normalize possible version strings to semver.
  */
@@ -183,6 +136,53 @@ function normalizeLegacyName (name: string): string {
   }
 
   return name
+}
+
+const indexCommit = throat(1, async function (commit: string) {
+  debug(`index commit: ${commit}`)
+
+  const files = await commitFilesChanged(REPO_DT_PATH, commit)
+
+  await Promise.all(files.map(async (change) => {
+    const [type, path] = change
+    const matched = DEFINITION_PATHS.match(path)
+
+    debug(`change (${matched ? 'matched' : 'not matched'}): ${change[0]} ${change[1]}`)
+
+    if (!matched) {
+      return undefined
+    }
+
+    if (type[0] === 'A' || type[0] === 'M') {
+      return indexFile(commit, 'A', path)
+    }
+
+    if (type[0] === 'D') {
+      return indexFile(commit, 'D', path)
+    }
+
+    console.error(`Unknown change: ${commit} "${change.join(' ')}"`)
+  }))
+
+  await createCommit(REPO_DT_URL, commit)
+})
+
+export async function exec () {
+  const latest = await getLatestCommit(REPO_DT_URL)
+
+  await repo(REPO_DT_PATH, REPO_DT_URL, 'master')
+
+  debug(`restarting from ${latest ? latest.commit : 'beginning'}`)
+
+  const since = await commitsSince(REPO_DT_PATH, latest ? latest.commit : undefined)
+
+  debug(`indexing ${since.length} commits`)
+
+  await Promise.all(since.map(commit => {
+    return indexCommit(commit)
+  }))
+
+  return since
 }
 
 /**

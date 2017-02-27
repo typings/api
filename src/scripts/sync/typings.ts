@@ -17,35 +17,6 @@ import {
 
 const REGISTRY_PATHS = new Minimatch('{npm,github,bower,common,shared,lib,env,global}/**/*.json')
 
-const indexCommit = throat(1, async function (commit: string) {
-  debug(`index commit: ${commit}`)
-
-  const files = await commitFilesChanged(REPO_TYPINGS_PATH, commit)
-
-  await Promise.all(files.map(async (change) => {
-    const [type, path] = change
-    const matched = REGISTRY_PATHS.match(path)
-
-    debug(`change (${matched ? 'matched' : 'not matched'}): ${change[0]} ${change[1]}`)
-
-    if (!matched) {
-      return undefined
-    }
-
-    if (type[0] === 'A' || type[0] === 'M') {
-      return indexFile(commit, 'A', path)
-    }
-
-    if (type[0] === 'D') {
-      return indexFile(commit, 'D', path)
-    }
-
-    console.error(`Unknown change: ${commit} "${change.join(' ')}"`)
-  }))
-
-  await createCommit(REPO_TYPINGS_URL, commit)
-})
-
 const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', path: string) {
   // Build up parts since npm registry has scopes (E.g. `@foo/bar`).
   const parts: string[] = path.replace(/\.json$/, '').split('/')
@@ -123,6 +94,35 @@ const indexFile = throat(10, async function (commit: string, type: 'A' | 'D', pa
     updated,
     locations: data.map(x => x.location)
   })
+})
+
+const indexCommit = throat(1, async function (commit: string) {
+  debug(`index commit: ${commit}`)
+
+  const files = await commitFilesChanged(REPO_TYPINGS_PATH, commit)
+
+  await Promise.all(files.map(async (change) => {
+    const [type, path] = change
+    const matched = REGISTRY_PATHS.match(path)
+
+    debug(`change (${matched ? 'matched' : 'not matched'}): ${change[0]} ${change[1]}`)
+
+    if (!matched) {
+      return undefined
+    }
+
+    if (type[0] === 'A' || type[0] === 'M') {
+      return indexFile(commit, 'A', path)
+    }
+
+    if (type[0] === 'D') {
+      return indexFile(commit, 'D', path)
+    }
+
+    console.error(`Unknown change: ${commit} "${change.join(' ')}"`)
+  }))
+
+  await createCommit(REPO_TYPINGS_URL, commit)
 })
 
 export async function exec () {
