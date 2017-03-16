@@ -73,6 +73,6 @@
     "split": "^1.0.0",
     "thenify": "^3.1.1",
     "throat": "^3.0.0",
-    "universal-analytics": "^0.4.2"
+    "universal-analytics": "^0.4.12"
   }
 }
