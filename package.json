@@ -67,7 +67,7 @@
     "minimatch": "^3.0.0",
     "newrelic": "^1.25.1",
     "pad-left": "^2.0.1",
-    "pg": "^6.0.0",
+    "pg": "^7.0.1",
     "promise-finally": "^3.0.0",
     "semver": "^5.1.0",
     "split": "^1.0.0",
